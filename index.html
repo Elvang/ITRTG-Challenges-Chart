@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ITRTG Challenge Chart</title>
+<meta name="description" content="Recommended challenge order and unlock tree for Idling to Rule the Gods, with a stats-export progress overlay.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Mono:wght@500;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><h1>ITRTG Challenges</h1><small>order &amp; unlock chart</small></div>
+  <div class="seg" role="group" aria-label="View">
+    <button type="button" data-view="road" aria-pressed="true">Roadmap</button>
+    <button type="button" data-view="tree" aria-pressed="false">Unlock tree</button>
+    <button type="button" data-view="rec" aria-pressed="false">Recommended</button>
+  </div>
+  <div class="search">
+    <input id="search" type="text" placeholder="Find a challenge… (UBC, pet, crystal)" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-controls="suggest" aria-label="Find a challenge">
+    <button class="clear" id="search-clear" type="button" aria-label="Clear search">×</button>
+    <ul class="suggest" id="suggest" role="listbox" hidden></ul>
+  </div>
+  <div class="tools">
+    <span class="player" id="player" hidden><span id="player-text"></span><button type="button" id="player-clear" title="Remove imported stats">Clear</button></span>
+    <button class="btn primary" id="btn-import" type="button">Import stats</button>
+    <button class="btn" id="btn-legend" type="button">Legend</button>
+  </div>
+</header>
+
+<main class="viewport" id="viewport" aria-label="Challenge map. Drag to pan, Ctrl + scroll or pinch to zoom.">
+  <div class="pane" id="pane">
+    <div class="world" id="world">
+      <div class="layer" id="layer-road"></div>
+      <div class="layer off" id="layer-tree"></div>
+      <div class="layer off" id="layer-rec"></div>
+      <div class="layer" id="layer-boxes"></div>
+    </div>
+  </div>
+
+  <aside class="legend" id="legend" hidden>
+    <button class="close" id="legend-close" type="button" aria-label="Close legend">×</button>
+    <h2>Legend</h2>
+    <h3>Challenge types</h3>
+    <ul id="legend-types"></ul>
+    <h3>Reading a box</h3>
+    <ul>
+      <li><span>▶ is the guide's first instruction. Small boxes further along the line say when to come back.</span></li>
+      <li><span><b>↻ repeat</b> means the guide says to keep coming back to it.</span></li>
+      <li><span><span class="stars" style="color:var(--accent)">★★★</span> in the header is how useful the guide rates the reward, from 1 to 5 stars.</span></li>
+      <li><span>The bars show the guide's playstyle rating: <span class="act"><i class="lit"></i><i></i><i></i><i></i></span> Lazy, <span class="act"><i class="lit"></i><i class="lit"></i><i></i><i></i></span> Moderate, <span class="act"><i class="lit"></i><i class="lit"></i><i class="lit"></i><i></i></span> Semi-active, <span class="act"><i class="lit"></i><i class="lit"></i><i class="lit"></i><i class="lit"></i></span> Active.</span></li>
+    </ul>
+    <h3>Moving around</h3>
+    <ul>
+      <li><span>Drag to pan. Ctrl + scroll or pinch to zoom. Press <b>/</b> to search.</span></li>
+      <li><span>Click a box for details, guides and calculators.</span></li>
+    </ul>
+    <h3>Imported stats</h3>
+    <ul>
+      <li><label><input type="checkbox" id="opt-dim" checked> Fade maxed challenges</label></li>
+      <li><span class="muted">Your export stays in this browser only.</span></li>
+    </ul>
+    <h3>Sources</h3>
+    <ul id="legend-sources"></ul>
+  </aside>
+
+  <div class="zoom">
+    <button type="button" id="z-in" aria-label="Zoom in">+</button>
+    <button type="button" id="z-out" aria-label="Zoom out">−</button>
+    <button type="button" id="z-fit" aria-label="Fit everything" title="Fit everything">⤢</button>
+  </div>
+  <div class="credit" id="credit"></div>
+
+  <aside class="drawer" id="drawer" aria-hidden="true" aria-label="Challenge details">
+    <div class="dh" id="drawer-head"></div>
+    <div class="db" id="drawer-body"></div>
+  </aside>
+</main>
+
+<div class="modal" id="modal" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="import-title">
+    <h2 id="import-title">Import your stats</h2>
+    <p>In game, copy your statistics export and paste all of it here. It starts with “Idling to Rule the Gods - statistics export”. Challenges you've maxed fade out, and each box shows your count or whether you can start it yet.</p>
+    <textarea id="import-text" spellcheck="false" placeholder="Idling to Rule the Gods - statistics export for …"></textarea>
+    <div class="result" id="import-result" hidden></div>
+    <div class="row">
+      <button class="btn" id="import-cancel" type="button">Cancel</button>
+      <button class="btn primary" id="import-go" type="button">Import</button>
+    </div>
+  </div>
+</div>
+
+<script src="challenges.js"></script>
+<script src="stats-parser.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
