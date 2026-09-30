@@ -500,7 +500,10 @@
   // pointer handling: drag to pan, pinch to zoom, click passes through when not dragged
   const pts = new Map(); let drag = null, moved = false;
   vp.addEventListener("pointerdown", e => {
-    if (e.target.closest("a, button, input, textarea, .legend, .zoom, .credit")) return;
+    if (e.target.closest("a, button, input, textarea, .legend, .zoom, .credit, .drawer")) return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;   // only the left button pans
+    // stop the browser from starting a text selection or a native drag of whatever is under the cursor
+    if (e.pointerType === "mouse") e.preventDefault();
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pts.size === 1) { drag = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; moved = false; }
     if (pts.size === 2) {
@@ -534,6 +537,8 @@
     setCam({ x: cam.x - pane.scrollLeft, y: cam.y - pane.scrollTop, k: cam.k });
     pane.scrollLeft = 0; pane.scrollTop = 0;
   });
+  vp.addEventListener("dragstart", e => { if (!e.target.closest(".drawer, .legend")) e.preventDefault(); });
+  vp.addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest("a, button, input, textarea, .legend, .zoom, .credit, .drawer")) e.preventDefault(); });
   const endPtr = e => { pts.delete(e.pointerId); if (!pts.size) { drag = null; vp.classList.remove("dragging"); } };
   vp.addEventListener("pointerup", endPtr); vp.addEventListener("pointercancel", endPtr);
   vp.addEventListener("wheel", e => {

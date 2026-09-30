@@ -311,3 +311,5 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 /* keep the zoom buttons clear of the open details panel */
 .viewport.drawer-open .zoom { right: calc(min(430px, 100%) + 16px); transition: right .3s; }
 @media (max-width: 720px) { .viewport.drawer-open .zoom { right: 16px; bottom: calc(78% + 12px); } }
+/* the map is for dragging, not selecting: no text selection or native drag inside it (the details panel still allows both) */
+.world, .world * { -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
