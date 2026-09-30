@@ -47,6 +47,7 @@ If an import says a line was "not recognized", the game has probably renamed a c
 - Challenge order and timing: [ITRTG Challenge Guide](https://docs.google.com/spreadsheets/d/1nz1_oKo0WvRaBNrRkeHX5hY5w9iHQoyigKt-0cWnmXk/edit?gid=0#gid=0) by Sim, Realtum and Bulborbish.
 - Calculators: [ITRTG Compiled](https://docs.google.com/spreadsheets/d/1nVzUV0KHgukuujgMwDYIMOHtiL2B8bWG-Bmgk_P4mSc/edit) spreadsheet.
 - Unlock conditions, max completions and excerpts: [ITRTG Wiki](https://itrtg.wiki.gg/wiki/Challenges).
+- Built with help from Claude (Anthropic).
 
 ## Licensing
 
