@@ -840,6 +840,8 @@
       if (ct) { chip.hidden = false; chip.textContent = ct[0]; chip.className = "st " + ct[1]; chip.title = s.s === "maybe" ? "Everything the export shows is met. Still check: " + (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText).join("; ") : s.s === "locked" ? "Not met: " + (c.check || []).filter(k => P.evalCond(k, imp) === false).map(condText).join("; ") : ""; }
       else chip.hidden = true;
       el.classList.toggle("is-done", s.s === "done");
+      el.classList.toggle("is-locked", s.s === "locked");
+      el.classList.toggle("is-maybe", s.s === "maybe");
     }
     const bi = currentBandIdx();
     $("#player").hidden = false;
@@ -891,7 +893,7 @@
   }
   function clearImport() {
     imp = null; store.set("itrtg.export", null);
-    for (const c of CH) { boxes[c.code].querySelector(".st").hidden = true; boxes[c.code].classList.remove("is-done"); }
+    for (const c of CH) { boxes[c.code].querySelector(".st").hidden = true; boxes[c.code].classList.remove("is-done", "is-locked", "is-maybe"); }
     $("#player").hidden = true;
     decorateRoad(); decorateTree();
     layoutRec();
