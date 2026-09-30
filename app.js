@@ -759,6 +759,13 @@
       i === 0 ? `<p>${esc(w[k])}</p>` : `<details${k === "strat" ? "" : ""}><summary>${h}</summary><p>${esc(w[k])}</p></details>`).join("")}
       <p class="muted" style="font-size:12px">Shortened excerpts from <a href="${esc(c.wiki)}" target="_blank" rel="noopener">${esc(c.name)}</a> by ITRTG Wiki contributors, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Read the full page for everything.</p></section>`);
 
+    // change history (from the wiki page's History section)
+    const hist = c.history || [];
+    const cl = D.sources.changelog;
+    parts.push(`<section class="wiki"><details${hist.length ? "" : ""}><summary>Change history${hist.length ? ` <span class="muted">(${hist.length})</span>` : ""}</summary>
+      ${hist.length ? `<ul class="hist">${hist.map(h => `<li>${esc(h)}</li>`).join("")}</ul>` : `<p class="muted">The wiki page has no history notes for this challenge.</p>`}
+      <p class="muted" style="font-size:12px">${hist.length ? `From the History section of <a href="${esc(c.wiki)}" target="_blank" rel="noopener">${esc(c.name)}</a> (CC BY-SA 4.0). ` : ""}Full record: <a href="${esc(cl.url)}" target="_blank" rel="noopener">${esc(cl.label)}</a>.</p></details></section>`);
+
     $("#drawer-head").innerHTML = `<div class="row"><h2>${esc(code === "ROOT" ? "Root" : code)}</h2><span class="type">${esc(t.label)}</span><button class="x" id="drawer-x" aria-label="Close details">×</button></div><p>${esc(c.name)}</p>`;
     $("#drawer-body").innerHTML = parts.join("");
     $("#drawer-body").scrollTop = 0;

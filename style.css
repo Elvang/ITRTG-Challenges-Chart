@@ -313,3 +313,5 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 @media (max-width: 720px) { .viewport.drawer-open .zoom { right: 16px; bottom: calc(78% + 12px); } }
 /* the map is for dragging, not selecting: no text selection or native drag inside it (the details panel still allows both) */
 .world, .world * { -webkit-user-select: none; user-select: none; -webkit-user-drag: none; }
+.drawer .hist { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+.drawer .hist li { line-height: 1.4; }
