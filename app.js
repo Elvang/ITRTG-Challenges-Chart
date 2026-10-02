@@ -524,7 +524,7 @@
       // drag scrolls the Rewards page up and down
       const dy = e.clientY - drag.y;
       if (!moved && Math.hypot(e.clientX - drag.x, dy) < 5) return;
-      if (!moved) { moved = true; vp.setPointerCapture(e.pointerId); vp.classList.add("dragging"); hideTip(); }
+      if (!moved) { moved = true; vp.setPointerCapture(e.pointerId); vp.classList.add("dragging"); unflip(); }
       RW.scrollTop = drag.st - dy;
       return;
     }
@@ -953,7 +953,7 @@
   //  Hover (or tap) a card for the per-challenge breakdown. Rules live in rewards.js.
   // =====================================================================
   const RWD = window.ITRTGRewards;
-  const RW = $("#rewards"), tip = $("#rw-tip");
+  const RW = $("#rewards");
   let rwShowAll = store.get("itrtg.rwAll") === "1", rwEval = [];
   // reward numbers: up to 3 significant digits below 1,000, then the chart's normal format
   const rnum = v => {
@@ -964,7 +964,7 @@
     return (+v.toFixed(d)).toLocaleString("en-US", { maximumFractionDigits: d });
   };
   function rval(e, v) {
-    const sign = e.lower ? "−" : "+";
+    const sign = v === 0 ? "" : e.lower ? "−" : "+";   // no sign on zero ("0%", not "−0%")
     switch (e.fmt) {
       case "pct": return sign + rnum(v) + "%";
       case "num": return sign + rnum(v);
@@ -980,7 +980,7 @@
       rwEval = [];
       RW.innerHTML = `<div class="rw-inner"><div class="rec-empty rw-empty">
         <h2>What am I getting from challenges?</h2>
-        <p>Import your statistics export and this tab adds up the rewards from every challenge you've done, grouped by what they boost. Hover or tap a card to see which challenges it comes from, and how far each one is from its max.</p>
+        <p>Import your statistics export and this tab adds up the rewards from every challenge you've done, grouped by what they boost. Hover or tap a card to see which challenges it comes from and how far each one is from its max.</p>
         <button type="button" class="btn primary" id="rw-import">Import stats</button></div></div>`;
       return;
     }
@@ -988,7 +988,7 @@
     const nAct = rwEval.filter(e => e.active).length;
     const srcs = new Set(); rwEval.forEach(e => e.active && e.lines.forEach(l => l.v && srcs.add(l.code)));
     let h = `<div class="rw-inner"><div class="rw-head"><div><h2>Active rewards</h2>
-      <p class="muted">${nAct} rewards from ${srcs.size} challenges. Hover or tap a card for the breakdown.</p></div>
+      <p class="muted">${nAct} rewards from ${srcs.size} challenges. Hover or tap a card for the breakdown, and click a challenge in it for details.</p></div>
       <label class="rw-all"><input type="checkbox" id="rw-all"${rwShowAll ? " checked" : ""}> Show rewards you don't have yet</label></div>`;
     for (const g of RWD.groups) {
       const list = rwEval.filter(e => e.group === g.key && (rwShowAll || e.active));
@@ -997,11 +997,14 @@
       for (const e of list) {
         const i = rwEval.indexOf(e);
         const full = e.lines.every(l => l.max == null ? false : (e.fmt === "flag" ? l.v >= 1 : l.v >= l.max - 1e-9));
-        h += `<button type="button" class="rw-card${e.active ? "" : " off"}${e.fmt === "flag" ? " flag" : ""}${full && e.active ? " full" : ""}" data-i="${i}" data-src="${esc(e.lines.map(l => l.code).join(" "))}">
-          <span class="rw-v">${esc(rval(e, e.total))}</span>
-          <span class="rw-l">${esc(e.label)}</span>
-          ${e.unit ? `<span class="rw-u">${esc(e.unit)}</span>` : ""}
-          <span class="rw-s">${e.lines.map(l => `<i style="--c:${T[l.type || BY[l.code]?.type || "N"].color}"${l.v ? "" : ' class="no"'}>${esc(l.code)}</i>`).join("")}</span></button>`;
+        h += `<div class="rw-card${e.active ? "" : " off"}${e.fmt === "flag" ? " flag" : ""}${full && e.active ? " full" : ""}" tabindex="0" role="group" aria-label="${esc(e.label)}" data-i="${i}" data-src="${esc(e.lines.map(l => l.code).join(" "))}">
+          <div class="rw-face rw-front">
+            <span class="rw-v">${esc(rval(e, e.total))}</span>
+            <span class="rw-l">${esc(e.label)}</span>
+            ${e.unit ? `<span class="rw-u">${esc(e.unit)}</span>` : ""}
+            <span class="rw-s">${e.lines.map(l => `<i style="--c:${T[l.type || BY[l.code]?.type || "N"].color}"${l.v ? "" : ' class="no"'}>${esc(l.code)}</i>`).join("")}</span>
+          </div>
+          ${backHTML(e)}</div>`;
       }
       h += `</div></section>`;
     }
@@ -1009,51 +1012,64 @@
     RW.innerHTML = h;
     applySelection();
   }
-  function tipHTML(e) {
+  // Back of a card: the per-challenge breakdown. Shown in place of the summary on hover (or tap).
+  // Both faces sit in the same grid cell, so the card never changes size when it flips.
+  function backHTML(e) {
     const rows = e.lines.map(l => {
-      const c = BY[l.code], col = T[l.type || c?.type || "N"].color;
+      const col = T[l.type || BY[l.code]?.type || "N"].color;
+      const flag = e.fmt === "flag";
+      const maxed = flag ? !!l.v : l.max != null && l.v >= l.max - 1e-9;
+      // middle: progress (with "maxed" in front when done); right: the reward; next line only for what's left
       let have;
-      if (l.stat) have = l.have == null ? "not in export" : fmt(l.have) + " points";
+      if (l.stat) have = l.have == null ? "not in export" : fmt(l.have) + " pts";
       else if (l.score) have = l.have == null ? "not played" : "best " + fmt(l.have);
       else have = l.cap != null && l.cap < 9999 ? `${l.have}/${l.cap}` : `×${l.have}`;
-      let val, mx = "";
-      if (e.fmt === "flag") { val = l.v ? "✓ unlocked" : `needs ${l.at}`; }
-      else {
-        val = rval(e, l.v);
-        mx = l.max == null ? "no cap" : (l.v >= l.max - 1e-9 ? "maxed" : "max " + rval(e, l.max));
-      }
-      return `<tr${l.v ? "" : ' class="no"'}><td><b style="--c:${col}">${esc(l.code)}</b></td><td class="v">${esc(val)}</td><td class="m">${esc(mx)}</td><td class="h">${esc(have)}</td></tr>` +
-        (l.note ? `<tr class="nt"><td></td><td colspan="3">${esc(l.note)}</td></tr>` : "");
+      const mid = (maxed ? "maxed " : "") + have;
+      const val = flag ? (l.v ? "✓" : `needs ${l.at}`) : rval(e, l.v);
+      const sub = [!flag && !maxed && l.max != null ? "max " + rval(e, l.max) : "", l.note].filter(Boolean).join(" · ");
+      const pill = BY[l.code] ? `<button type="button" class="rw-pill" data-go="${esc(l.code)}" style="--c:${col}" title="Open ${esc(l.code)} details">${esc(l.code)}</button>`
+        : `<span class="rw-pill" style="--c:${col}">${esc(l.code)}</span>`;
+      return `<div class="rw-row${l.v ? "" : " no"}">${pill}<span class="rw-mid">${esc(mid)}</span><b>${esc(val)}</b></div>${sub ? `<div class="rw-sub">${esc(sub)}</div>` : ""}`;
     }).join("");
-    const how = e.lines.length > 1 && e.fmt !== "flag" ? `<p class="muted">${e.mode === "mul" ? "Sources multiply together." : e.mode === "reduce" ? "Reductions multiply together." : "Sources add together."}${e.cap != null ? " Capped at " + rval(e, e.cap) + "." : ""}</p>` : "";
-    return `<h4>${esc(e.label)} <span>${esc(rval(e, e.total))}</span></h4><table>${rows}</table>${how}`;
+    const how = e.lines.length > 1 && e.fmt !== "flag" ? `<div class="rw-sub">${e.mode === "mul" ? "Sources multiply together." : e.mode === "reduce" ? "Reductions multiply together." : "Sources add together."}${e.cap != null ? " Capped at " + rval(e, e.cap) + "." : ""}</div>` : "";
+    return `<div class="rw-face rw-back"><div class="rw-bh"><span>${esc(e.label)}</span><b>${esc(rval(e, e.total))}</b></div>${rows}${how}</div>`;
   }
-  let tipFor = null;
-  function showTip(card) {
-    const e = rwEval[+card.dataset.i]; if (!e) return;
-    tipFor = card;
-    tip.innerHTML = tipHTML(e); tip.hidden = false;
-    const r = card.getBoundingClientRect(), t = tip.getBoundingClientRect();
-    const W = window.innerWidth, H = window.innerHeight;
-    let x = Math.min(Math.max(8, r.left), W - t.width - 8);
-    let y = r.bottom + 6;
-    if (y + t.height > H - 8) y = Math.max(8, r.top - t.height - 6);
-    tip.style.left = x + "px"; tip.style.top = y + "px";
+  // Spotlight: one flipped card at a time; the rest fade a little.
+  let flipped = null, flipT = null;
+  function flip(card) {
+    clearTimeout(flipT);
+    if (flipped === card) return;
+    if (flipped) flipped.classList.remove("flip");
+    flipped = card; card.classList.add("flip"); RW.classList.add("spot");
   }
-  function hideTip() { tip.hidden = true; tipFor = null; }
-  RW.addEventListener("pointerover", e => { const c = e.target.closest(".rw-card"); if (c && e.pointerType === "mouse" && c !== tipFor) showTip(c); });
-  RW.addEventListener("pointerout", e => { const c = e.target.closest(".rw-card"); if (c && e.pointerType === "mouse" && !c.contains(e.relatedTarget)) hideTip(); });
-  RW.addEventListener("focusin", e => { const c = e.target.closest(".rw-card"); if (c && c.matches(":focus-visible")) showTip(c); });   // keyboard only; taps go through click
-  RW.addEventListener("focusout", e => { if (e.target.closest(".rw-card")) hideTip(); });
+  function unflip() { clearTimeout(flipT); if (flipped) flipped.classList.remove("flip"); flipped = null; RW.classList.remove("spot"); }
+  // mouse: short delay before the first flip so sweeping across the grid doesn't flicker; moving to the next card switches at once
+  RW.addEventListener("pointerover", e => {
+    const c = e.target.closest(".rw-card"); if (!c || e.pointerType !== "mouse" || drag && moved) return;
+    clearTimeout(flipT);
+    if (c !== flipped) flipT = setTimeout(() => flip(c), flipped ? 0 : 120);
+  });
+  RW.addEventListener("pointerout", e => {
+    const c = e.target.closest(".rw-card"); if (!c || e.pointerType !== "mouse" || c.contains(e.relatedTarget)) return;
+    clearTimeout(flipT);
+    if (!(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".rw-card"))) flipT = setTimeout(unflip, 150);
+  });
+  RW.addEventListener("focusin", e => { const c = e.target.closest(".rw-card"); if (c && (c.matches(":focus-visible") || c.contains(document.activeElement) && c !== document.activeElement)) flip(c); });
+  RW.addEventListener("focusout", e => { const c = e.target.closest(".rw-card"); if (c && !c.contains(e.relatedTarget) && c === flipped && !c.matches(":hover")) unflip(); });
   RW.addEventListener("click", e => {
     if (e.target.closest("#rw-import")) { openModal(); return; }
+    if (moved) return;   // end of a drag, not a click
+    const go = e.target.closest(".rw-pill[data-go]");
+    if (go) { select(go.dataset.go, false); return; }
     const c = e.target.closest(".rw-card");
-    if (c && moved) return;   // end of a drag, not a click
-    if (c) { c === tipFor && tip.hidden === false && e.pointerType !== "mouse" ? hideTip() : showTip(c); }
+    if (c) { c === flipped && e.pointerType !== "mouse" ? unflip() : flip(c); }   // tap toggles; mouse already flipped on hover
   });
-  RW.addEventListener("change", e => { if (e.target.id === "rw-all") { rwShowAll = e.target.checked; store.set("itrtg.rwAll", rwShowAll ? "1" : "0"); hideTip(); renderRewards(); } });
-  RW.addEventListener("scroll", hideTip, { passive: true });
-  document.addEventListener("pointerdown", e => { if (!tip.hidden && !e.target.closest(".rw-card, #rw-tip")) hideTip(); });
+  RW.addEventListener("keydown", e => {
+    const c = e.target.closest(".rw-card");
+    if (c && e.target === c && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); c === flipped ? unflip() : flip(c); }
+  });
+  RW.addEventListener("change", e => { if (e.target.id === "rw-all") { rwShowAll = e.target.checked; store.set("itrtg.rwAll", rwShowAll ? "1" : "0"); unflip(); renderRewards(); } });
+  document.addEventListener("pointerdown", e => { if (flipped && !e.target.closest(".rw-card, .drawer")) unflip(); });
 
   // =====================================================================
   //  Legend + misc controls
