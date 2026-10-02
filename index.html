@@ -27,7 +27,14 @@
   </div>
   <div class="tools">
     <span class="player" id="player" hidden><span id="player-text"></span><button type="button" id="player-clear" title="Remove imported stats">Clear</button></span>
-    <button class="btn primary" id="btn-import" type="button">Import stats</button>
+    <div class="split" id="import-split">
+      <button class="btn primary split-main" id="btn-import" type="button">Import stats</button><button class="btn primary split-caret" id="btn-import-menu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="import-menu" aria-label="More ways to import">▾</button>
+      <div class="menu" id="import-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-act="clip">Import from clipboard</button>
+        <button type="button" role="menuitem" data-act="file">Import from a file…</button>
+      </div>
+    </div>
+    <input type="file" id="import-file" accept=".txt,text/plain" hidden>
     <button class="btn" id="btn-legend" type="button">Legend</button>
   </div>
 </header>
@@ -84,10 +91,16 @@
   </aside>
 </main>
 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
 <div class="modal" id="modal" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="import-title">
     <h2 id="import-title">Import your stats</h2>
-    <p>In game, copy your statistics export and paste all of it here. It starts with “Idling to Rule the Gods - statistics export”. Challenges you've maxed fade out, and each box shows your count or whether you can start it yet.</p>
+    <p>In game, copy your statistics export, then paste all of it below or use <b>Paste from clipboard</b>. It starts with “Idling to Rule the Gods - statistics export”. You can also drop a saved .txt export here.</p>
+    <div class="row left">
+      <button class="btn" id="import-clip" type="button">Paste from clipboard</button>
+      <button class="btn" id="import-pick" type="button">Choose file…</button>
+    </div>
     <textarea id="import-text" spellcheck="false" placeholder="Idling to Rule the Gods - statistics export for …"></textarea>
     <div class="result" id="import-result" hidden></div>
     <div class="row">

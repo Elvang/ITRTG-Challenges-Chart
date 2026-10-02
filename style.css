@@ -393,3 +393,18 @@ button.rw-pill:hover { background: color-mix(in srgb, var(--c) 30%, var(--surfac
 .drawer .rwl li.no b { color: var(--fg-faint); }
 /* panels inside the map keep a normal cursor and native scrolling (touch too: the map itself has touch-action: none) */
 .drawer, .legend { cursor: auto; touch-action: pan-y; overscroll-behavior: contain; }
+
+/* Import split button: main part opens the window, the ▾ opens a small menu */
+.split { position: relative; display: inline-flex; }
+.split .split-main { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split .split-caret { border-top-left-radius: 0; border-bottom-left-radius: 0; padding: 7px 9px; border-left: 0;
+  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--accent-ink) 35%, transparent); }
+.split .menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 45; min-width: 210px; padding: 4px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); display: grid; }
+.split .menu button { text-align: left; border: 0; background: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.split .menu button:hover, .split .menu button:focus-visible { background: var(--surface-2); outline: none; }
+.modal .row.left { justify-content: flex-start; }
+.modal.drop .card { outline: 2px dashed var(--accent); outline-offset: 4px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  max-width: min(560px, calc(100vw - 32px)); padding: 10px 14px; border-radius: 10px; background: var(--surface-2); color: var(--fg);
+  border: 1px solid var(--accent); box-shadow: var(--shadow); font-size: 13px; cursor: pointer; }

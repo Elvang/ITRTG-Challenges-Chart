@@ -840,24 +840,89 @@
   // =====================================================================
   const modal = $("#modal");
   function openModal() { modal.hidden = false; $("#import-text").focus(); $("#import-result").hidden = true; }
-  function closeModal() { modal.hidden = true; }
-  $("#btn-import").addEventListener("click", openModal);
+  function closeModal() { modal.hidden = true; modal.classList.remove("drop"); }
   $("#import-cancel").addEventListener("click", closeModal);
   modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
-  $("#import-go").addEventListener("click", () => {
-    const text = $("#import-text").value;
+  // One import path for every source (text box, clipboard, file). Returns the parsed result.
+  function importText(text) {
     const r = P.parseExport(text, CH);
+    if (r.error) return r;
+    store.set("itrtg.export", text);
+    applyImport(r, true);
+    r.message = `Imported <b>${esc(r.player || "your stats")}</b>: ${r.found} challenge lines. ${summarize()}` +
+      (r.unknown.length ? `<br><span class="muted">Not recognized (maybe a new challenge): ${esc(r.unknown.join("; "))}</span>` : "");
+    return r;
+  }
+  // result inside the window (window path)
+  function showResult(r) {
     const out = $("#import-result");
     out.hidden = false;
     if (r.error) { out.className = "result err"; out.textContent = r.error; return; }
-    store.set("itrtg.export", text);
-    applyImport(r, true);
-    const counts = summarize();
-    out.className = "result";
-    out.innerHTML = `Imported <b>${esc(r.player || "your stats")}</b>: ${r.found} challenge lines. ${counts}` +
-      (r.unknown.length ? `<br><span class="muted">Not recognized (maybe a new challenge): ${esc(r.unknown.join("; "))}</span>` : "");
+    out.className = "result"; out.innerHTML = r.message;
     setTimeout(closeModal, r.unknown.length ? 2600 : 900);
+  }
+  // result without the window (dropdown path): a toast on success, the window with the error otherwise
+  function quickResult(r, text) {
+    if (r.error) { openModal(); if (text != null) $("#import-text").value = text; showResult(r); return; }
+    toast(r.message, r.unknown.length ? 6000 : 3500);
+  }
+  let toastT = null;
+  function toast(html, ms) {
+    const t = $("#toast"); t.innerHTML = html; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, ms);
+  }
+  $("#toast").addEventListener("click", () => { $("#toast").hidden = true; });
+  $("#import-go").addEventListener("click", () => showResult(importText($("#import-text").value)));
+  // clipboard: needs the browser's permission, and some embeds block it entirely
+  async function readClipboard() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) throw new Error("unsupported");
+    return navigator.clipboard.readText();
+  }
+  const CLIP_FAIL = "The browser didn't allow reading the clipboard here. Paste the export into the box with Ctrl+V (or long-press, Paste) and press Import.";
+  $("#import-clip").addEventListener("click", async () => {
+    try { const text = await readClipboard(); $("#import-text").value = text; showResult(importText(text)); }
+    catch (e) { const out = $("#import-result"); out.hidden = false; out.className = "result err"; out.textContent = CLIP_FAIL; $("#import-text").focus(); }
   });
+  // files: the picker, a drop on the window, or a drop anywhere on the page
+  const fileInput = $("#import-file");
+  let fileFromMenu = false;
+  $("#import-pick").addEventListener("click", () => { fileFromMenu = false; fileInput.click(); });
+  fileInput.addEventListener("change", async () => {
+    const f = fileInput.files[0]; fileInput.value = "";
+    if (!f) return;
+    const text = await f.text();
+    if (fileFromMenu && modal.hidden) quickResult(importText(text), text);
+    else { $("#import-text").value = text; showResult(importText(text)); }
+  });
+  const hasFile = e => e.dataTransfer && [...e.dataTransfer.types].includes("Files");
+  window.addEventListener("dragover", e => { if (!hasFile(e)) return; e.preventDefault(); modal.classList.add("drop"); if (modal.hidden) openModal(); });
+  window.addEventListener("dragleave", e => { if (!e.relatedTarget) modal.classList.remove("drop"); });
+  window.addEventListener("drop", async e => {
+    if (!hasFile(e)) return;
+    e.preventDefault(); modal.classList.remove("drop");
+    const f = e.dataTransfer.files[0]; if (!f) return;
+    const text = await f.text();
+    $("#import-text").value = text; showResult(importText(text));
+  });
+  // split button: the main part opens the window, the ▾ offers the direct routes
+  const menuBtn = $("#btn-import-menu"), menu = $("#import-menu");
+  function setMenu(open) { menu.hidden = !open; menuBtn.setAttribute("aria-expanded", String(open)); if (open) menu.querySelector("button").focus(); }
+  $("#btn-import").addEventListener("click", () => { setMenu(false); openModal(); });
+  menuBtn.addEventListener("click", e => { e.stopPropagation(); setMenu(menu.hidden); });
+  menu.addEventListener("click", async e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    setMenu(false);
+    if (b.dataset.act === "file") { fileFromMenu = true; fileInput.click(); return; }
+    try { const text = await readClipboard(); quickResult(importText(text), text); }
+    catch (err) { openModal(); const out = $("#import-result"); out.hidden = false; out.className = "result err"; out.textContent = CLIP_FAIL; }
+  });
+  menu.addEventListener("keydown", e => {
+    const items = [...menu.querySelectorAll("button")], i = items.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+    else if (e.key === "Escape") { e.stopPropagation(); setMenu(false); menuBtn.focus(); }
+  });
+  document.addEventListener("click", e => { if (!menu.hidden && !e.target.closest("#import-split")) setMenu(false); });
   $("#import-text").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) $("#import-go").click(); });
   function summarize() {
     const n = { done: 0, progress: 0, ready: 0, locked: 0 };
