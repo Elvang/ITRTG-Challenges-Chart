@@ -391,3 +391,5 @@ button.rw-pill:hover { background: color-mix(in srgb, var(--c) 30%, var(--surfac
 .drawer .rwl li b { font: 600 13px/1.3 var(--font-mono); white-space: nowrap; text-align: right; }
 .drawer .rwl li.no { color: var(--fg-dim); }
 .drawer .rwl li.no b { color: var(--fg-faint); }
+/* panels inside the map keep a normal cursor and native scrolling (touch too: the map itself has touch-action: none) */
+.drawer, .legend { cursor: auto; touch-action: pan-y; overscroll-behavior: contain; }

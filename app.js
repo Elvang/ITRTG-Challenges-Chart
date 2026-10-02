@@ -557,6 +557,8 @@
   const endPtr = e => { pts.delete(e.pointerId); if (!pts.size) { drag = null; vp.classList.remove("dragging"); } };
   vp.addEventListener("pointerup", endPtr); vp.addEventListener("pointercancel", endPtr);
   vp.addEventListener("wheel", e => {
+    // the details panel and legend scroll natively; only the map (or Rewards page) takes the wheel
+    if (e.target.closest(".drawer, .legend")) return;
     e.preventDefault();
     const r = vp.getBoundingClientRect();
     if (view === "rewards") {   // the wheel scrolls the Rewards page (no zoom there)
