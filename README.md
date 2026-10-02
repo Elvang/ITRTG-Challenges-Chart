@@ -5,6 +5,7 @@ An interactive chart of the recommended challenge order for *Idling to Rule the 
 - **Roadmap**: when the community guide says to start each challenge, and when to come back for more.
 - **Unlock tree**: what you need to unlock each challenge, following the arrows backwards.
 - **Recommended**: after you import your stats, lists only the challenges you can start or continue right now, with what the guide says to aim for next. It's sorted by the guide's reward rating, then by stage. Challenges whose unlock the export can't confirm are left out.
+- **Rewards**: after you import your stats, adds up the rewards from every challenge you've done, grouped by what they boost (planet level, might, pets, crystals…). Hover or tap a card to see which challenges it comes from and how far each is from its max.
 - **Search**: type a code or a name (`UBC`, `pet`, `crystal`). The tree view highlights the whole unlock path.
 - **Details**: click any box for the unlock requirements, reward, guide timing, wiki excerpts, and links to calculators.
 - **Import stats**: paste the in-game statistics export. Maxed challenges fade out, and each box shows your count, your best score, or whether you can start it yet. The export is saved only in your own browser.
@@ -17,6 +18,7 @@ An interactive chart of the recommended challenge order for *Idling to Rule the 
 | `style.css` | Styles (dark by default, light when your system is set to light) |
 | `challenges.js` | **All challenge data.** This is the file to edit. |
 | `stats-parser.js` | Reads the statistics export text |
+| `rewards.js` | Reward rules for the Rewards tab |
 | `app.js` | Layouts, animation, search, details panel |
 
 No build step and no dependencies. Open `index.html` directly, or host the folder anywhere static.
@@ -46,10 +48,10 @@ If an import says a line was "not recognized", the game has probably renamed a c
 
 - Challenge order and timing: [ITRTG Challenge Guide](https://docs.google.com/spreadsheets/d/1nz1_oKo0WvRaBNrRkeHX5hY5w9iHQoyigKt-0cWnmXk/edit?gid=0#gid=0) by Sim, Realtum and Bulborbish.
 - Calculators: [ITRTG Compiled](https://docs.google.com/spreadsheets/d/1nVzUV0KHgukuujgMwDYIMOHtiL2B8bWG-Bmgk_P4mSc/edit) spreadsheet.
-- Unlock conditions, max completions and excerpts: [ITRTG Wiki](https://itrtg.wiki.gg/wiki/Challenges).
+- Unlock conditions, max completions, rewards and excerpts: [ITRTG Wiki](https://itrtg.wiki.gg/wiki/Challenges).
 - Built with help from Claude (Anthropic).
 
 ## Licensing
 
-- The wiki excerpts (the `wikiInfo` text in `challenges.js`) are shortened from pages on the [ITRTG Wiki](https://itrtg.wiki.gg/) by its contributors, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Those excerpts, and any changes to them, stay under CC BY-SA 4.0.
+- The wiki excerpts (the `wikiInfo` text in `challenges.js`) and the reward descriptions in `rewards.js` are shortened from pages on the [ITRTG Wiki](https://itrtg.wiki.gg/) by its contributors, licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Those excerpts, and any changes to them, stay under CC BY-SA 4.0.
 - Each excerpt links back to its wiki page in the details panel.

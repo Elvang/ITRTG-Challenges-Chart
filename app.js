@@ -38,7 +38,7 @@
   const fmtPair = (a, b) => { const s = Math.max(Math.abs(a || 0), Math.abs(b || 0)) >= 1e6; return [fmt(a, s), fmt(b, s)]; };
 
   // ---------- state ----------
-  let view = ["tree", "rec"].includes(store.get("itrtg.view")) ? store.get("itrtg.view") : "road";
+  let view = ["tree", "rec", "rewards"].includes(store.get("itrtg.view")) ? store.get("itrtg.view") : "road";
   let imp = null;                // parsed import
   let cam = { x: 0, y: 0, k: 1 };
   const layouts = {};            // view -> {pos: {code:{x,y}}, w, h}
@@ -199,6 +199,7 @@
     L.road.innerHTML = bg + frag.join("");
     L.road.querySelectorAll(".station").forEach(s => s.style.height = "auto");
     layouts.road = { pos, w: RX0 + W + 40, h: H, hidden };
+    layouts.rewards = layouts.road;   // the map stays on the Roadmap underneath the Rewards page
     decorateRoad();
   }
 
@@ -341,8 +342,8 @@
     const vw = vp.getBoundingClientRect().width;
     const narrow = vw < 760;                       // phones: row goes under its box
     const X0 = narrow ? 16 : 40, GAP = 16;
-    const RW = narrow ? Math.max(BW, vw - 2 * X0 - 16) : 560;
-    const FW = narrow ? RW : BW + GAP + RW;         // full content width
+    const ROWW = narrow ? Math.max(BW, vw - 2 * X0 - 16) : 560;
+    const FW = narrow ? ROWW : BW + GAP + ROWW;         // full content width
     const W = X0 * 2 + FW + (narrow ? 0 : 40);
     let y = 30;
     if (!imp) {
@@ -387,7 +388,7 @@
       const ahead = bandNow != null && band > bandNow ? `<span class="tag ahead">Guide says later</span>` : "";
       const h = hC[c.code];
       const rx = narrow ? X0 : X0 + BW + GAP, ry = narrow ? y + h + 6 : y;
-      frag.push(`<div class="rec-row" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${RW}px;min-height:${narrow ? 0 : h}px">
+      frag.push(`<div class="rec-row" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
         <div class="what">▶ ${esc(nx.txt)}</div>
         <div class="meta"><span class="tag">${esc(D.bands[band].label)}</span>${ahead}<span>${prog}</span></div>
         ${c.reward ? `<div class="rw">${esc(c.reward)}</div>` : ""}</div>`);
@@ -426,6 +427,7 @@
     L.road.classList.toggle("off", view !== "road");
     L.tree.classList.toggle("off", view !== "tree");
     L.rec.classList.toggle("off", view !== "rec");
+    RW.hidden = view !== "rewards";
     document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", b.dataset.view === view));
     document.body.dataset.view = view;
     store.set("itrtg.view", view);
@@ -625,6 +627,7 @@
     applySelection();
     const lay = layouts[view];
     const onScreen = lay.pos[code] && !(view === "road" && lay.hidden.has(code));
+    if (view === "rewards") { const h = RW.querySelector(".rw-card.hit"); if (h && move) h.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
     if (onScreen && (move || isCovered(code))) centerOn(code);
   }
   function deselect() {
@@ -643,8 +646,10 @@
   }
   function applySelection() {
     document.querySelectorAll(".dim, .hit, .path, .on, .box.sel").forEach(el => el.classList.remove("dim", "hit", "path", "on", "sel"));
+    RW.querySelectorAll(".rw-card.hit").forEach(el => el.classList.remove("hit"));
     if (!selCode) return;
     boxes[selCode].classList.add("hit");
+    RW.querySelectorAll(".rw-card").forEach(el => { if (el.dataset.src.split(" ").includes(selCode)) el.classList.add("hit"); });
     if (view !== "tree") return;
     const path = ancestors(selCode);
     for (const c of CH) {
@@ -858,6 +863,7 @@
     decorateTree();
     layoutRec();
     if (view === "rec") placeBoxes();
+    renderRewards();
     if (selCode) openInfo(selCode);
     applySelection();
   }
@@ -898,9 +904,116 @@
     decorateRoad(); decorateTree();
     layoutRec();
     if (view === "rec") placeBoxes();
+    renderRewards();
     if (selCode) openInfo(selCode);
   }
   $("#player-clear").addEventListener("click", clearImport);
+
+
+  // =====================================================================
+  //  Rewards tab: every active reward from the import, grouped by effect.
+  //  Hover (or tap) a card for the per-challenge breakdown. Rules live in rewards.js.
+  // =====================================================================
+  const RWD = window.ITRTGRewards;
+  const RW = $("#rewards"), tip = $("#rw-tip");
+  let rwShowAll = store.get("itrtg.rwAll") === "1", rwEval = [];
+  // reward numbers: up to 3 significant digits below 1,000, then the chart's normal format
+  const rnum = v => {
+    const a = Math.abs(v);
+    if (a >= 1000) return fmt(v);
+    if (a === 0) return "0";
+    const d = a >= 100 ? 0 : a >= 10 ? 1 : a >= 1 ? 2 : 3;
+    return (+v.toFixed(d)).toLocaleString("en-US", { maximumFractionDigits: d });
+  };
+  function rval(e, v) {
+    const sign = e.lower ? "−" : "+";
+    switch (e.fmt) {
+      case "pct": return sign + rnum(v) + "%";
+      case "num": return sign + rnum(v);
+      case "x": return "×" + rnum(v);
+      case "min": return sign + rnum(v) + " min";
+      case "sph": return sign + rnum(v) + " s/h";
+      case "flag": return v ? "✓" : "–";
+      default: return rnum(v);
+    }
+  }
+  function renderRewards() {
+    if (!imp) {
+      rwEval = [];
+      RW.innerHTML = `<div class="rw-inner"><div class="rec-empty rw-empty">
+        <h2>What am I getting from challenges?</h2>
+        <p>Import your statistics export and this tab adds up the rewards from every challenge you've done, grouped by what they boost. Hover or tap a card to see which challenges it comes from, and how far each one is from its max.</p>
+        <button type="button" class="btn primary" id="rw-import">Import stats</button></div></div>`;
+      return;
+    }
+    rwEval = RWD.evaluate(imp, BY);
+    const nAct = rwEval.filter(e => e.active).length;
+    const srcs = new Set(); rwEval.forEach(e => e.active && e.lines.forEach(l => l.v && srcs.add(l.code)));
+    let h = `<div class="rw-inner"><div class="rw-head"><div><h2>Active rewards</h2>
+      <p class="muted">${nAct} rewards from ${srcs.size} challenges. Hover or tap a card for the breakdown.</p></div>
+      <label class="rw-all"><input type="checkbox" id="rw-all"${rwShowAll ? " checked" : ""}> Show rewards you don't have yet</label></div>`;
+    for (const g of RWD.groups) {
+      const list = rwEval.filter(e => e.group === g.key && (rwShowAll || e.active));
+      if (!list.length) continue;
+      h += `<section class="rw-group"><h3>${esc(g.label)}</h3><div class="rw-grid">`;
+      for (const e of list) {
+        const i = rwEval.indexOf(e);
+        const full = e.lines.every(l => l.max == null ? false : (e.fmt === "flag" ? l.v >= 1 : l.v >= l.max - 1e-9));
+        h += `<button type="button" class="rw-card${e.active ? "" : " off"}${e.fmt === "flag" ? " flag" : ""}${full && e.active ? " full" : ""}" data-i="${i}" data-src="${esc(e.lines.map(l => l.code).join(" "))}">
+          <span class="rw-v">${esc(rval(e, e.total))}</span>
+          <span class="rw-l">${esc(e.label)}</span>
+          ${e.unit ? `<span class="rw-u">${esc(e.unit)}</span>` : ""}
+          <span class="rw-s">${e.lines.map(l => `<i style="--c:${T[BY[l.code]?.type || "N"].color}"${l.v ? "" : ' class="no"'}>${esc(l.code)}</i>`).join("")}</span></button>`;
+      }
+      h += `</div></section>`;
+    }
+    h += `<p class="rw-foot muted">Reward rules are from the <a href="${D.sources.wiki.url}" target="_blank" rel="noopener">ITRTG wiki</a> challenge pages (CC BY-SA 4.0). Counts come from your export and already include UCC bonus completions. Root and Hard Mode challenges aren't in the export, so they aren't counted. Rewards that depend on something else (a crystal or Might level, a UB tier) are shown per level.</p></div>`;
+    RW.innerHTML = h;
+    applySelection();
+  }
+  function tipHTML(e) {
+    const rows = e.lines.map(l => {
+      const c = BY[l.code], col = T[c?.type || "N"].color;
+      let have;
+      if (l.score) have = l.have == null ? "not played" : "best " + fmt(l.have);
+      else have = l.cap != null && l.cap < 9999 ? `${l.have}/${l.cap}` : `×${l.have}`;
+      let val, mx = "";
+      if (e.fmt === "flag") { val = l.v ? "✓ unlocked" : `needs ${l.at}`; }
+      else {
+        val = rval(e, l.v);
+        mx = l.max == null ? "no cap" : (l.v >= l.max - 1e-9 ? "maxed" : "max " + rval(e, l.max));
+      }
+      return `<tr${l.v ? "" : ' class="no"'}><td><b style="--c:${col}">${esc(l.code)}</b></td><td class="v">${esc(val)}</td><td class="m">${esc(mx)}</td><td class="h">${esc(have)}</td></tr>` +
+        (l.note ? `<tr class="nt"><td></td><td colspan="3">${esc(l.note)}</td></tr>` : "");
+    }).join("");
+    const how = e.lines.length > 1 && e.fmt !== "flag" ? `<p class="muted">${e.mode === "mul" ? "Sources multiply together." : e.mode === "reduce" ? "Reductions multiply together." : "Sources add together."}${e.cap != null ? " Capped at " + rval(e, e.cap) + "." : ""}</p>` : "";
+    return `<h4>${esc(e.label)} <span>${esc(rval(e, e.total))}</span></h4><table>${rows}</table>${how}`;
+  }
+  let tipFor = null;
+  function showTip(card) {
+    const e = rwEval[+card.dataset.i]; if (!e) return;
+    tipFor = card;
+    tip.innerHTML = tipHTML(e); tip.hidden = false;
+    const r = card.getBoundingClientRect(), t = tip.getBoundingClientRect();
+    const W = window.innerWidth, H = window.innerHeight;
+    let x = Math.min(Math.max(8, r.left), W - t.width - 8);
+    let y = r.bottom + 6;
+    if (y + t.height > H - 8) y = Math.max(8, r.top - t.height - 6);
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.hidden = true; tipFor = null; }
+  RW.addEventListener("pointerover", e => { const c = e.target.closest(".rw-card"); if (c && e.pointerType === "mouse" && c !== tipFor) showTip(c); });
+  RW.addEventListener("pointerout", e => { const c = e.target.closest(".rw-card"); if (c && e.pointerType === "mouse" && !c.contains(e.relatedTarget)) hideTip(); });
+  RW.addEventListener("focusin", e => { const c = e.target.closest(".rw-card"); if (c && c.matches(":focus-visible")) showTip(c); });   // keyboard only; taps go through click
+  RW.addEventListener("focusout", e => { if (e.target.closest(".rw-card")) hideTip(); });
+  RW.addEventListener("click", e => {
+    if (e.target.closest("#rw-import")) { openModal(); return; }
+    const c = e.target.closest(".rw-card");
+    if (c) { c === tipFor && tip.hidden === false && e.pointerType !== "mouse" ? hideTip() : showTip(c); }
+  });
+  RW.addEventListener("change", e => { if (e.target.id === "rw-all") { rwShowAll = e.target.checked; store.set("itrtg.rwAll", rwShowAll ? "1" : "0"); hideTip(); renderRewards(); } });
+  RW.addEventListener("scroll", hideTip, { passive: true });
+  document.addEventListener("pointerdown", e => { if (!tip.hidden && !e.target.closest(".rw-card, #rw-tip")) hideTip(); });
 
   // =====================================================================
   //  Legend + misc controls
@@ -931,6 +1044,7 @@
   function boot() {
     buildLegend();
     buildBoxes();
+    renderRewards();
     layoutRoad();
     layoutTree();
     layoutRec();
