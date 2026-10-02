@@ -6,7 +6,8 @@
 //    code, name, type (N, MR, GP, D, U, HM, R), wiki (URL)
 //    unlock      : text lines shown in boxes
 //    requires    : [[code, arrow label], ...]  first = tree parent, rest = dashed links
-//    max, playstyle (Lazy/Moderate/Semi-active/Active), rewardRating (1-5), reward, notes
+//    max, playstyle (Lazy/Moderate/Semi-active/Active), rewardRating (1-5, from the guide), notes
+//    (what each challenge rewards lives in rewards.js, not here)
 //    chp         : ChP per completion (from the guide)
 //    stages      : { step: "guide text" }  steps 0..10, see BANDS below
 //    check       : unlock conditions used by the stats import:
@@ -215,7 +216,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Active",
    "rewardRating": 1,
-   "reward": "More GP on GP pet feed; DGPC unlock",
    "notes": "First time unlocks GP pet. The rest: speeding / speedfalling",
    "chp": 37,
    "stages": {
@@ -252,7 +252,6 @@ window.ITRTG = {
    "max": "45",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "More planet level",
    "notes": "Shouldn't take longer than 3h. Best done in speedruns <30 min",
    "chp": 82,
    "stages": {
@@ -293,7 +292,6 @@ window.ITRTG = {
    "max": "40",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "More monument stats",
    "notes": null,
    "chp": 240,
    "stages": {
@@ -339,7 +337,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Faster/better achievements; UCC unlock",
    "notes": "After UBCs, all v4s, new RTI, for the most gains",
    "chp": 1260,
    "stages": {
@@ -390,7 +387,6 @@ window.ITRTG = {
    "max": "40",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Cheaper BH/BHU, GP from BH",
    "notes": "Spend GP for div",
    "chp": 120,
    "stages": {
@@ -427,7 +423,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Active",
    "rewardRating": 5,
-   "reward": "Better campaigns",
    "notes": "Train pets, optimal 1h item camps",
    "chp": 240,
    "stages": {
@@ -476,7 +471,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Moderate",
    "rewardRating": 2,
-   "reward": "Free starter pet levels",
    "notes": null,
    "chp": 37,
    "stages": {
@@ -516,7 +510,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "Faster pet leveling",
    "notes": "A more balanced growth floor will clear faster",
    "chp": 600,
    "stages": {
@@ -556,7 +549,6 @@ window.ITRTG = {
    "max": "30",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "Faster/cheaper crystals; UCC unlock",
    "notes": "Can be delayed for more crystal slots + ICU",
    "chp": 450,
    "stages": {
@@ -607,7 +599,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Semi-active",
    "rewardRating": 2,
-   "reward": "More might",
    "notes": "Use DMC calc to optimize might/hr; want 1KBHC completed",
    "chp": 375,
    "stages": {
@@ -653,7 +644,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "More might, faster might leveling",
    "notes": null,
    "chp": 360,
    "stages": {
@@ -699,7 +689,6 @@ window.ITRTG = {
    "max": "10",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Reduced unleash cooldown",
    "notes": null,
    "chp": 150,
    "stages": {
@@ -745,7 +734,6 @@ window.ITRTG = {
    "max": "50",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Energy+ from V1s; UCC unlock",
    "notes": null,
    "chp": 900,
    "stages": {
@@ -796,7 +784,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "GP from BH, BH+ might",
    "notes": "Use pills",
    "chp": 1050,
    "stages": {
@@ -843,7 +830,6 @@ window.ITRTG = {
    "max": "11",
    "playstyle": "Lazy",
    "rewardRating": 4,
-   "reward": "More V2 multi, autokill (!)",
    "notes": "Extra bonus for clearing the 11th",
    "chp": 150,
    "stages": {
@@ -892,7 +878,6 @@ window.ITRTG = {
    "max": "5",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Faster V4 fights",
    "notes": null,
    "chp": 150,
    "stages": {
@@ -933,7 +918,6 @@ window.ITRTG = {
    "max": "21",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "Cheaper creations, faster monuments",
    "notes": "Use liquids",
    "chp": 630,
    "stages": {
@@ -976,7 +960,6 @@ window.ITRTG = {
    "max": "26",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Multiplier to CC",
    "notes": "Use liquids and GGC spreadsheet next-ats",
    "chp": 780,
    "stages": {
@@ -1025,7 +1008,6 @@ window.ITRTG = {
    "max": "10 (+1)",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Increased v4 rewards in long rebirths",
    "notes": "Difficulty depends on Light Clones, RTI and v4 Mage attack",
    "chp": 600,
    "stages": {
@@ -1068,7 +1050,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Moderate",
    "rewardRating": 2,
-   "reward": "Better worker clones, more UB div",
    "notes": null,
    "chp": 937,
    "stages": {
@@ -1110,7 +1091,6 @@ window.ITRTG = {
    "max": "30",
    "playstyle": "Lazy",
    "rewardRating": 4,
-   "reward": "Increased CP income",
    "notes": null,
    "chp": 1350,
    "stages": {
@@ -1156,7 +1136,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Faster spacedim, uncapped levels",
    "notes": null,
    "chp": 450,
    "stages": {
@@ -1196,7 +1175,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Higher spacedim softcap, Ghost SD levels",
    "notes": null,
    "chp": 750,
    "stages": {
@@ -1241,7 +1219,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Faster RTI levelling",
    "notes": null,
    "chp": 750,
    "stages": {
@@ -1282,7 +1259,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Semi-active",
    "rewardRating": 3,
-   "reward": "More BS",
    "notes": null,
    "chp": 1125,
    "stages": {
@@ -1323,7 +1299,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Special equip",
    "notes": null,
    "chp": 750,
    "stages": {
@@ -1369,7 +1344,6 @@ window.ITRTG = {
    "max": "21",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Multiverse unlock & speed",
    "notes": "First one unlocks the Multiverse tab. Use liquids",
    "chp": 787,
    "stages": {
@@ -1410,7 +1384,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Moderate",
    "rewardRating": 4,
-   "reward": "Monument multi from monuments, monument overcap",
    "notes": "Reward weak until the finisher gives overcap",
    "chp": 1125,
    "stages": {
@@ -1451,7 +1424,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 4,
-   "reward": "Super DivGen unlock & power",
    "notes": null,
    "chp": 1050,
    "stages": {
@@ -1486,7 +1458,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Multiplier to GP BS/CS (retroactive)",
    "notes": "Needs strong RTI and >500M clones for <24h",
    "chp": 937,
    "stages": {
@@ -1529,7 +1500,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Crafting speed & quality",
    "notes": "Can be done over multiple rebirths",
    "chp": 750,
    "stages": {
@@ -1576,7 +1546,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Lazy",
    "rewardRating": 1,
-   "reward": "Ghost Bank up to 5,000 GP",
    "notes": "Scales poorly midgame on; only worth it with start-of-RB GP",
    "chp": 750,
    "stages": {
@@ -1617,7 +1586,6 @@ window.ITRTG = {
    "max": "30",
    "playstyle": "Active",
    "rewardRating": 3,
-   "reward": "Even more light clones",
    "notes": "Balanced around stable P.Baal v150; several days each",
    "chp": 900,
    "stages": {
@@ -1667,7 +1635,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Powersurge overcap",
    "notes": "Longer challenge for lategame",
    "chp": 450,
    "stages": {
@@ -1710,7 +1677,6 @@ window.ITRTG = {
    "max": "10 (+1)",
    "playstyle": "Moderate",
    "rewardRating": 2,
-   "reward": "Free DivGen upgrades, auto-unlock DivGen",
    "notes": null,
    "chp": 150,
    "stages": {
@@ -1751,7 +1717,6 @@ window.ITRTG = {
    "max": "10 (+1)",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "Extra div/sec from capacity",
    "notes": "DivGen limited to 100k levels per offline calc",
    "chp": 225,
    "stages": {
@@ -1788,7 +1753,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Moderate",
    "rewardRating": 4,
-   "reward": "Worker clone power; divcamp buffed by worker div/sec",
    "notes": null,
    "chp": 600,
    "stages": {
@@ -1826,7 +1790,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Active",
    "rewardRating": 4,
-   "reward": "Free might levels",
    "notes": "Improved next-at for 99 GP. 1.5-3h runs make this fast",
    "chp": 450,
    "stages": {
@@ -1863,7 +1826,6 @@ window.ITRTG = {
    "max": "26",
    "playstyle": "Active",
    "rewardRating": 4,
-   "reward": "More CP",
    "notes": null,
    "chp": 372,
    "stages": {
@@ -1904,7 +1866,6 @@ window.ITRTG = {
    "max": "26",
    "playstyle": "Active",
    "rewardRating": 3,
-   "reward": "Extra time multi",
    "notes": null,
    "chp": 780,
    "stages": {
@@ -1951,7 +1912,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Active",
    "rewardRating": 2,
-   "reward": "35th monster, monster div, battle regen; NTC unlock",
    "notes": "Clones on non-BB monsters for div buy",
    "chp": 450,
    "stages": {
@@ -1987,7 +1947,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Active",
    "rewardRating": 3,
-   "reward": "Better divgen, cheaper creations; UCC unlock",
    "notes": "Import next-ats each rebirth",
    "chp": 900,
    "stages": {
@@ -2028,7 +1987,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Semi-active",
    "rewardRating": 3,
-   "reward": "More BP from UBs",
    "notes": null,
    "chp": 450,
    "stages": {
@@ -2074,7 +2032,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "More light clones",
    "notes": null,
    "chp": 750,
    "stages": {
@@ -2120,7 +2077,6 @@ window.ITRTG = {
    "max": "40",
    "playstyle": "Active",
    "rewardRating": 4,
-   "reward": "Faster might levelling",
    "notes": null,
    "chp": 750,
    "stages": {
@@ -2161,7 +2117,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Active",
    "rewardRating": 2,
-   "reward": "Double mystic/phys training",
    "notes": null,
    "chp": 600,
    "stages": {
@@ -2199,7 +2154,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Active",
    "rewardRating": 2,
-   "reward": "Faster clone creation",
    "notes": null,
    "chp": 562,
    "stages": {
@@ -2239,7 +2193,6 @@ window.ITRTG = {
    "max": "20 (25 after 20 UCC)",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Faster UB respawn",
    "notes": null,
    "chp": 1500,
    "stages": {
@@ -2276,7 +2229,6 @@ window.ITRTG = {
    "max": "25 (50 after 20 UCC)",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "More GP from climbing, higher monument RB multi caps",
    "notes": null,
    "chp": 1500,
    "stages": {
@@ -2320,7 +2272,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 4,
-   "reward": "Faster dungeons, more rooms",
    "notes": "Kill off D2 teams in D3-10 for more multi overnight",
    "chp": 1200,
    "stages": {
@@ -2367,7 +2318,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Crystal upgrade efficiency+",
    "notes": "Only CP from Crystal Sacrifice counts",
    "chp": 2250,
    "stages": {
@@ -2413,7 +2363,6 @@ window.ITRTG = {
    "max": "27",
    "playstyle": "Moderate",
    "rewardRating": 2,
-   "reward": "29th training and skill",
    "notes": null,
    "chp": 486,
    "stages": {
@@ -2455,7 +2404,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "Ghost clones on might and RTI",
    "notes": "Easier with more creation count",
    "chp": 450,
    "stages": {
@@ -2502,7 +2450,6 @@ window.ITRTG = {
    "max": "10",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "More BP from UBs",
    "notes": null,
    "chp": 750,
    "stages": {
@@ -2553,7 +2500,6 @@ window.ITRTG = {
    "max": "20",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "(not listed in guide)",
    "notes": null,
    "chp": 1500,
    "stages": {
@@ -2591,7 +2537,6 @@ window.ITRTG = {
    "max": "50",
    "playstyle": "Semi-active",
    "rewardRating": 5,
-   "reward": "Easier climbing, weaker P.Baals",
    "notes": "Buy 30-50k clones, instant clones to softcap, GP into BS or div; 1-3h runs get you under 24h",
    "chp": 1875,
    "stages": {
@@ -2650,7 +2595,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Semi-active",
    "rewardRating": 5,
-   "reward": "More growth",
    "notes": null,
    "chp": 1125,
    "stages": {
@@ -2691,7 +2635,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": "Moderate",
    "rewardRating": 2,
-   "reward": "Ghost might levels; UCC unlock",
    "notes": null,
    "chp": 900,
    "stages": {
@@ -2738,7 +2681,6 @@ window.ITRTG = {
    "max": "2",
    "playstyle": "Lazy",
    "rewardRating": 1,
-   "reward": "Turtle",
    "notes": "2nd UAC for Turtle evo + pet token; generally not worth doing",
    "chp": 150,
    "stages": {
@@ -2774,7 +2716,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 4,
-   "reward": "Overflow Points",
    "notes": "Rewards are powerful - don't ignore them",
    "chp": "1",
    "stages": {
@@ -2813,7 +2754,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Pet stats, growth to weakest pet",
    "notes": "~+10% growth income while in challenge; good for lazy pets",
    "chp": "10",
    "stages": {
@@ -2854,7 +2794,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Semi-active",
    "rewardRating": 4,
-   "reward": "Mystic crystal power, UBv1 GP, planet multi",
    "notes": "~1-5 early, 5-15 mid, 16-20 late, 21+ endgame",
    "chp": "25",
    "stages": {
@@ -2897,7 +2836,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Ultimate Overflow Points",
    "notes": "First completion unlocks MV RB multi, growth, GP",
    "chp": "10",
    "stages": {
@@ -2944,7 +2882,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "More GP from BHU",
    "notes": "Bonus GP applies after might unlock; great use of div doublers",
    "chp": "30",
    "stages": {
@@ -3018,7 +2955,6 @@ window.ITRTG = {
    "max": "= highest P.Baal",
    "playstyle": "Active",
    "rewardRating": 4,
-   "reward": "Bonus completions (1-20); extra overflow points & purchases (21+)",
    "notes": "Capped at your highest P.Baal",
    "chp": "45",
    "stages": {
@@ -3108,7 +3044,6 @@ window.ITRTG = {
    },
    "playstyle": "Active",
    "rewardRating": 2,
-   "reward": "Planet level",
    "notes": "Not worth a separate DBC anymore; do it as part of RTI",
    "chp": 333,
    "stages": {
@@ -3160,7 +3095,6 @@ window.ITRTG = {
    },
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "TBS rebirth levels",
    "notes": null,
    "chp": 333,
    "stages": {
@@ -3211,7 +3145,6 @@ window.ITRTG = {
    },
    "playstyle": "Lazy",
    "rewardRating": 4,
-   "reward": "More growth from feeds",
    "notes": "Even the minimum reward is worthwhile",
    "chp": 333,
    "stages": {
@@ -3251,7 +3184,6 @@ window.ITRTG = {
    },
    "playstyle": "Semi-active",
    "rewardRating": 3,
-   "reward": "Better unleashes",
    "notes": "40k DMC for book evo",
    "chp": 333,
    "stages": {
@@ -3295,7 +3227,6 @@ window.ITRTG = {
    },
    "playstyle": "Active",
    "rewardRating": 4,
-   "reward": "Better creation crystal, cheaper creation buys",
    "notes": "Use the DNDC calculator in compiled",
    "chp": 333,
    "stages": {
@@ -3346,7 +3277,6 @@ window.ITRTG = {
    },
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "24h camps; slightly shorter camps",
    "notes": null,
    "chp": 333,
    "stages": {
@@ -3396,7 +3326,6 @@ window.ITRTG = {
    },
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "More GP from UBv1s",
    "notes": null,
    "chp": 333,
    "stages": {
@@ -3446,7 +3375,6 @@ window.ITRTG = {
    },
    "playstyle": "Moderate",
    "rewardRating": 3,
-   "reward": "Fewer clones for MVB",
    "notes": "Score of 1 unlocks MV Boost",
    "chp": 500,
    "stages": {
@@ -3496,7 +3424,6 @@ window.ITRTG = {
    },
    "playstyle": "Lazy",
    "rewardRating": 3,
-   "reward": "Higher monument multi caps",
    "notes": null,
    "chp": 333,
    "stages": {
@@ -3545,7 +3472,6 @@ window.ITRTG = {
    },
    "playstyle": "Active",
    "rewardRating": 5,
-   "reward": "Faster levelling, better RTI multis",
    "notes": "Repeat every 6-12 months",
    "chp": 1000,
    "stages": {
@@ -3613,7 +3539,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Hard Mode point",
    "notes": null,
    "chp": null,
    "stages": {
@@ -3659,7 +3584,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Active",
    "rewardRating": 2,
-   "reward": "Hard Mode point",
    "notes": null,
    "chp": null,
    "stages": {
@@ -3705,7 +3629,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Hard Mode point",
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3751,7 +3674,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Lazy",
    "rewardRating": 2,
-   "reward": "Hard Mode point",
    "notes": null,
    "chp": null,
    "stages": {
@@ -3802,7 +3724,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": "Semi-active",
    "rewardRating": 2,
-   "reward": "Hard Mode point",
    "notes": null,
    "chp": null,
    "stages": {
@@ -3852,7 +3773,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": null,
    "rewardRating": null,
-   "reward": "Hard Mode point",
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3898,7 +3818,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": null,
    "rewardRating": null,
-   "reward": "Hard Mode point",
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3944,7 +3863,6 @@ window.ITRTG = {
    "max": "Unlimited",
    "playstyle": null,
    "rewardRating": null,
-   "reward": "Hard Mode point",
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3990,7 +3908,6 @@ window.ITRTG = {
    "max": "50 each",
    "playstyle": null,
    "rewardRating": null,
-   "reward": "Root versions of base challenges",
    "notes": "Not individually in the guide; guide says Root challenges should not take longer than 6h",
    "chp": null,
    "stages": {
@@ -4032,7 +3949,6 @@ window.ITRTG = {
    "max": "25",
    "playstyle": null,
    "rewardRating": null,
-   "reward": "+2% pet class/dungeon exp outside dungeons per completion",
    "notes": "Added in 4.65.1705 (2026-09-21). Not in the community guide yet.",
    "chp": null,
    "stages": {},

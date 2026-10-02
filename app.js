@@ -385,14 +385,15 @@
       else prog = "Not started";
       if (typeof nx.target === "number" && nx.target < (st.cap || Infinity)) prog += ` · aim for <b>${nx.target}</b>`;
       else if (typeof nx.target === "string") prog += ` · aim for <b>${esc(nx.target)}</b>`;
+      const rsum = window.ITRTGRewards.rewardSummary(c.code, BY);
       const ahead = bandNow != null && band > bandNow ? `<span class="tag ahead">Guide says later</span>` : "";
       const h = hC[c.code];
       const rx = narrow ? X0 : X0 + BW + GAP, ry = narrow ? y + h + 6 : y;
       frag.push(`<div class="rec-row" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
         <div class="what">▶ ${esc(nx.txt)}</div>
         <div class="meta"><span class="tag">${esc(D.bands[band].label)}</span>${ahead}<span>${prog}</span></div>
-        ${c.reward ? `<div class="rw">${esc(c.reward)}</div>` : ""}</div>`);
-      y += narrow ? h + 6 + 16 * Math.ceil((nx.txt.length + 4) / 40) + (c.reward ? 18 * Math.ceil(c.reward.length / 48) : 0) + 58 : Math.max(h, 96) + 12;
+        ${rsum ? `<div class="rw">${esc(rsum)}</div>` : ""}</div>`);
+      y += narrow ? h + 6 + 16 * Math.ceil((nx.txt.length + 4) / 40) + (rsum ? 18 * Math.ceil(rsum.length / 48) : 0) + 58 : Math.max(h, 96) + 12;
     }
     L.rec.innerHTML = frag.join("");
     // second pass: stack everything using the real rendered heights
@@ -738,8 +739,9 @@
       <dt>${c.scoreCap ? "ChP cap" : "Max"}</dt><dd>${c.scoreCap ? `${esc(c.scoreCap.label)} (${c.scoreCap.chp} ChP)` : esc(c.max)}</dd>
       ${c.chp ? `<dt>ChP each</dt><dd>${esc(c.chp)}</dd>` : ""}
       ${c.playstyle ? `<dt>Playstyle</dt><dd>${esc(c.playstyle)}</dd>` : ""}
-      ${c.reward ? `<dt>Reward</dt><dd>${c.rewardRating ? `<span class="stars">${stars(c.rewardRating)}</span> ` : ""}${esc(c.reward)}</dd>` : ""}
+      ${c.rewardRating ? `<dt>Reward rating</dt><dd><span class="stars" title="How useful the guide rates the reward">${stars(c.rewardRating)}</span> <span class="muted">(guide)</span></dd>` : ""}
     </dl></section>`);
+    parts.push(rewardSection(c));
     // timeline
     const st2 = Object.keys(c.stages).map(Number).sort((a, b) => a - b);
     if (st2.length) {
@@ -779,6 +781,25 @@
     try { history.replaceState(null, "", "#" + code); } catch (e) { }
     drawer.setAttribute("aria-hidden", "false");
     $("#drawer-x").addEventListener("click", deselect);
+  }
+  // Rewards list in the details panel, built from rewards.js (the single source for reward text)
+  function rewardSection(c) {
+    const r = window.ITRTGRewards.challengeRewards(c.code, imp, BY);
+    if (!r.items.length && !r.text.length) return "";
+    const rows = r.items.map(({ effect: e, line: l }) => {
+      let val;
+      if (e.fmt === "flag") {
+        const when = l.score ? `score ${fmt(l.at)}` : `at ${l.at}`;
+        val = imp ? (l.v ? "✓" : when) : when;
+      } else if (imp) {
+        val = rval(e, l.v) + (l.max == null ? "" : l.v >= l.max - 1e-9 ? " · maxed" : ` of ${rval(e, l.max)}`);
+      } else if (l.max != null) val = "up to " + rval(e, l.max);
+      else val = l.each ? rval(e, l.each) + " each" : "grows with score";
+      const sub = [e.unit, l.note].filter(Boolean).join(" · ");
+      return `<li class="${imp && !l.v ? "no" : ""}"><span>${esc(e.label)}${sub ? `<small>${esc(sub)}</small>` : ""}</span><b>${esc(val)}</b></li>`;
+    }).join("");
+    return `<section><h3>Rewards${imp ? " · yours" : ""}</h3>${rows ? `<ul class="rwl">${rows}</ul>` : ""}${r.text.map(t => `<p style="margin:8px 0 0">${esc(t)}</p>`).join("")}
+      <p class="muted" style="font-size:12px;margin:8px 0 0">From the wiki's Reward section. Totals across all challenges are on the Rewards tab.</p></section>`;
   }
   function closeInfo() {
     drawer.classList.remove("open"); drawer.setAttribute("aria-hidden", "true");

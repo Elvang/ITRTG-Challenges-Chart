@@ -12,7 +12,7 @@
 //           The completion cap comes from the import ("done / cap", already includes UCC bonuses)
 //           unless the source sets capN. Unlimited challenges (cap 9,999) have no max.
 //    score: day challenge / RTI code. f(s) gets the best score. maxS = score where the reward stops growing.
-//    at   : flags only. Unlocked once n >= at.
+//    at   : flags only. Unlocked once n >= at. A flag can use {score, min} instead.
 //    stat : a number from the export's stats (e.g. hmChp). f(v) gets it. Needs label and type for the tooltip.
 //    note : optional text shown in the tooltip line.
 //
@@ -195,6 +195,23 @@
       sources: [ { ch: "UCC", f: n => n >= 20 ? v : 0, capN: 20 } ] })),
 
     // ---------- Unlocked extras (yes / no) ----------
+    { key: "fGpPetGet", group: "unlock", label: "God Power pet", fmt: "flag", sources: [ { ch: "GPC", at: 1 } ] },
+    { key: "fCfV2", group: "unlock", label: "Crystal Factory & UBv2 unlocked for good", fmt: "flag", sources: [ { ch: "UUC", at: 1 }, { ch: "UBC", at: 1 } ] },
+    { key: "fWolf", group: "unlock", label: "Wolf pet unlock (25 UBC)", fmt: "flag", sources: [ { ch: "UBC", at: 25 } ] },
+    { key: "fTurtle", group: "unlock", label: "Turtle pet", fmt: "flag", sources: [ { ch: "UAC", at: 1 } ] },
+    { key: "fTurtleEvo", group: "unlock", label: "Turtle can evolve (+300,000 pet stones)", fmt: "flag", sources: [ { ch: "UAC", at: 2 } ] },
+    { key: "fRunePatch", group: "unlock", label: "Rune Patch blacksmith armor", fmt: "flag", sources: [ { ch: "USC", at: 1 } ] },
+    { key: "fRunePatchMax", group: "unlock", label: "Rune Patch dungeon damage bonus", fmt: "flag", sources: [ { ch: "USC", at: 25 } ] },
+    { key: "fMvTab", group: "unlock", label: "Multiverse tab", fmt: "flag", sources: [ { ch: "UMC", at: 1 } ] },
+    { key: "fMvBoost", group: "unlock", label: "Multiverse Boost", fmt: "flag", sources: [ { score: "DMVC", min: 1 } ] },
+    { key: "fMvElements", group: "unlock", label: "Multiverse Rebirth Multi, God Power & Pet Growth", fmt: "flag", sources: [ { ch: "UOC", at: 1 } ] },
+    { key: "fDivGenEarly", group: "unlock", label: "Divinity Generator without building all monuments", fmt: "flag", sources: [ { ch: "DAC", at: 1 } ] },
+    { key: "fBhPlus", group: "unlock", label: "Black Hole+ might", fmt: "flag", sources: [ { ch: "1KBHC", at: 1 } ] },
+    { key: "fSdg", group: "unlock", label: "Super Divinity Generator", fmt: "flag", sources: [ { ch: "SDGC", at: 1 } ] },
+    { key: "fEtcTraining", group: "unlock", label: "29th training and skill", fmt: "flag", sources: [ { ch: "ETC", at: 1 } ] },
+    { key: "fCamp24", group: "unlock", label: "24-hour pet campaigns", fmt: "flag", sources: [ { score: "DNRC", min: 38, note: "P.Baal v10 (god 38) in a DNRC" } ] },
+    { key: "fRtiTab", group: "unlock", label: "RTI(∞) tab", fmt: "flag", sources: [ { score: "RTI", min: 1 } ] },
+    { key: "fSeed", group: "unlock", label: "Seed pet & Ultimate Stats Challenge", fmt: "flag", sources: [ { score: "RTI", min: 50, note: "P.Baal v50 in RTI" } ] },
     { key: "fGpPet", group: "unlock", label: "God Power pet can evolve", fmt: "flag", sources: [ { ch: "GPC", at: 25 } ] },
     { key: "fUbv2Auto", group: "unlock", label: "UBv2 auto-kill", fmt: "flag", sources: [ { ch: "UBV2C", at: 10 } ] },
     { key: "fV4Instant", group: "unlock", label: "−1 min UBv4 fight per ITRTGv1 kill", fmt: "flag", sources: [ { ch: "LCv4C", at: 11 } ] },
@@ -224,32 +241,34 @@
     if (mode === "reduce") return (1 - vals.reduce((a, v) => a * (1 - v / 100), 1)) * 100;
     return vals.reduce((a, v) => a + v, 0);
   }
+  // One source line. Works without an import too (imp = null): then v/have are null and max uses the cap from challenges.js.
+  function lineFor(e, s, imp, byCode) {
+    if (s.stat) {
+      const sv = imp ? imp.stats[s.stat] : null;
+      return { code: s.label, type: s.type, stat: true, have: sv, v: imp ? (sv != null ? s.f(sv) : 0) : null, max: null, each: s.f(1), note: s.note };
+    }
+    if (s.score) {
+      const sc = imp ? imp.scores[s.score] : null;
+      if (e.fmt === "flag") return { code: s.score, have: sc, score: true, v: imp ? (sc >= s.min ? 1 : 0) : null, max: 1, at: s.min, note: s.note };
+      return { code: s.score, have: sc, score: true, v: imp ? (sc != null ? s.f(sc) : 0) : null, max: s.maxS != null ? s.f(s.maxS) : null, note: s.note };
+    }
+    const n = imp ? imp.done[s.ch] || 0 : null;
+    let cap = imp ? imp.cap[s.ch] : null;
+    if (cap == null && byCode && byCode[s.ch]) cap = parseFloat(byCode[s.ch].max) || null;
+    const unlimited = cap != null && cap >= 9999;
+    const capN = s.capN != null ? s.capN : cap;   // capN on a source overrides the export cap (UBV2C counts an 11th)
+    if (e.fmt === "flag") {
+      const at = s.at === "cap" ? cap : s.at;
+      return { code: s.ch, have: n, cap, v: imp ? (at != null && n >= at ? 1 : 0) : null, max: 1, at, note: s.note };
+    }
+    const v = imp ? (n > 0 ? s.f(capN != null && !unlimited ? min(n, capN) : n, cap) : 0) : null;
+    const mx = unlimited || capN == null ? null : s.f(capN, cap);
+    return { code: s.ch, have: n, cap, v, max: mx, each: s.f(1, cap), note: s.note };
+  }
   function evaluate(imp, byCode) {
     if (!imp) return [];
     return effects.map(e => {
-      const lines = e.sources.map(s => {
-        if (s.stat) {
-          const sv = imp.stats[s.stat];
-          return { code: s.label, type: s.type, stat: true, have: sv, v: sv != null ? s.f(sv) : 0, max: null, note: s.note };
-        }
-        if (s.score) {
-          const sc = imp.scores[s.score];
-          const v = sc != null ? s.f(sc) : 0;
-          return { code: s.score, have: sc, score: true, v, max: s.maxS != null ? s.f(s.maxS) : null, note: s.note };
-        }
-        const n = imp.done[s.ch] || 0;
-        let cap = imp.cap[s.ch];
-        if (cap == null && byCode && byCode[s.ch]) cap = parseFloat(byCode[s.ch].max) || null;
-        const unlimited = cap != null && cap >= 9999;
-        const capN = s.capN != null ? s.capN : cap;   // capN on a source overrides the export cap (UBV2C counts an 11th)
-        if (e.fmt === "flag") {
-          const at = s.at === "cap" ? cap : s.at;
-          return { code: s.ch, have: n, cap, v: at != null && n >= at ? 1 : 0, max: 1, at, note: s.note };
-        }
-        const v = n > 0 ? s.f(capN != null && !unlimited ? min(n, capN) : n, cap) : 0;
-        const mx = unlimited || capN == null ? null : s.f(capN, cap);
-        return { code: s.ch, have: n, cap, v, max: mx, note: s.note };
-      });
+      const lines = e.sources.map(s => lineFor(e, s, imp, byCode));
       const vals = lines.map(l => l.v);
       let total = e.fmt === "flag" ? (vals.some(Boolean) ? 1 : 0) : e.fmt === "x" ? vals[0] : combine(e.mode, vals);
       if (e.cap != null) total = min(total, e.cap);
@@ -258,7 +277,40 @@
     });
   }
 
-  const api = { groups, effects, evaluate, _test: { uccOfp, uccOcCap, ubv2 } };
+  // ---------------------------------------------------------------------
+  //  Per challenge (details panel, Recommended rows): every effect the challenge feeds,
+  //  with its current value (if imported) and its max. This is the single source for reward text.
+  // ---------------------------------------------------------------------
+  // Rewards that aren't a number we can total. Keyed by code, or by type for Hard Mode.
+  const HM_EACH = "Each Hard Mode point: +0.25% Physical, Mystic, Battle & Creating, +0.25% Building & Creating Speed, +10% HP Regen.";
+  const challengeText = {
+    OC: { short: "Overflow Points", text: ["Overflow Points (√ of the run's score), spent on permanent upgrades."] },
+    UOC: { short: "Ultimate Overflow Points", text: ["Ultimate Overflow Points from the run's score, spent on things like Higher P Baal."] },
+    HM: { short: "Hard Mode point", text: ["1 Hard Mode point per completion.", HM_EACH] },
+    ROOT: { short: "1-5 Hard Mode points", text: ["1-5 Hard Mode points per completion: 1 for rUUC, rDRC, rMMC · 2 for rGSC, rNDMC · 3 for rDGC, rMAC, rSPLC · 4 for rTGSC · 5 for rEMC, rUGC.", HM_EACH] },
+  };
+  function challengeRewards(code, imp, byCode) {
+    const c = byCode && byCode[code];
+    const out = [];
+    for (const e of effects) for (const s of e.sources) {
+      if ((s.ch || s.score) !== code) continue;
+      out.push({ effect: e, line: lineFor(e, s, imp, byCode) });
+    }
+    // UCC: its main reward (bonus completions) goes first
+    out.sort((a, b) => (b.effect.group === "ucc") - (a.effect.group === "ucc"));
+    const t = challengeText[code] || (c && challengeText[c.type]) || null;
+    return { items: out, text: t ? t.text : [], short: t ? t.short : null };
+  }
+  // short text for compact places: the first few effect names
+  function rewardSummary(code, byCode, n = 3) {
+    const r = challengeRewards(code, null, byCode);
+    const names = r.items.filter(x => x.effect.group !== "ucc").map(x => x.effect.label);
+    if (r.items.some(x => x.effect.group === "ucc")) names.unshift("Bonus completions for other challenges");
+    if (!names.length) return r.short || "";
+    return names.slice(0, n).join(" · ") + (names.length > n ? ` · +${names.length - n} more` : "");
+  }
+
+  const api = { groups, effects, evaluate, challengeRewards, rewardSummary, _test: { uccOfp, uccOcCap, ubv2 } };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ITRTGRewards = api;
 })(typeof window !== "undefined" ? window : globalThis);
