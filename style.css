@@ -340,14 +340,15 @@ body[data-view="rewards"] .pane, body[data-view="rewards"] .zoom, body[data-view
 .rw-group { margin-top: 22px; }
 .rw-group h3 { font: 600 11px/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--fg-dim); margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
 .rw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-.rw-card { display: grid; text-align: left; padding: 11px 13px 10px; min-width: 0;
+.rw-card { display: grid; grid-template-columns: minmax(0, 1fr); text-align: left; padding: 11px 13px 10px; min-width: 0;
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--fg);
   transition: opacity .15s, filter .15s, border-color .15s, background .15s; }
 .rw-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .rw-card.hit { box-shadow: 0 0 0 2px var(--accent); }
 .rw-card.off { opacity: .5; }
 /* two faces in one grid cell: the card is always as tall as the taller face, so flipping never moves the grid */
-.rw-face { grid-area: 1 / 1; display: grid; gap: 3px; align-content: start; min-width: 0; }
+.rw-face { grid-area: 1 / 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; align-content: start; min-width: 0; }
+.rw-bh span { min-width: 0; overflow-wrap: anywhere; }
 .rw-back { visibility: hidden; gap: 2px; }
 .rw-card.flip .rw-front { visibility: hidden; }
 .rw-card.flip .rw-back { visibility: visible; }

@@ -7,6 +7,10 @@
 //    fmt  : pct (+12%) | num (+12) | x (×12) | min (12 min) | sph (12 s/h) | flag (unlocked yes/no)
 //    lower: true when a smaller number is the good direction (costs, timers). Shown with a minus sign.
 //    mode : add (default, values summed) | mul (1+a)(1+b)-1 | reduce 1-(1-a)(1-b)
+//    base : show what's left instead of the reduction: prefix + (base - value) + suffix ("51 min").
+//           zero is the text when nothing is left ("Instant").
+//    free : text shown when a lower-is-better percentage reaches 100 ("Free").
+//    Time and duration rewards are phrased as "... time" with a percentage off, so they read the same way.
 //  Source fields:
 //    ch   : challenge code. f(n) gets the completion count from the import.
 //           The completion cap comes from the import ("done / cap", already includes UCC bonuses)
@@ -14,7 +18,7 @@
 //    score: day challenge / RTI code. f(s) gets the best score. maxS = score where the reward stops growing.
 //    at   : flags only. Unlocked once n >= at. A flag can use {score, min} instead.
 //    stat : a number from the export's stats (e.g. hmChp). f(v) gets it. Needs label and type for the tooltip.
-//    note : optional text shown in the tooltip line.
+//    note : optional text under the source line. Can be a function of the completion count.
 //
 //  Reward wording: itrtg.wiki.gg challenge pages, "Reward" sections (checked 2026-10-01),
 //  CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
@@ -31,6 +35,14 @@
   const uccRate = k => min(8, Math.floor((k - 21) / 10) + 1);
   function uccOfp(n) { let t = 0; for (let k = 21; k <= min(n, 150); k++) t += uccRate(k); return t; }
   function uccOcCap(n) { let t = 500; for (let k = 21; k <= min(n, 150); k++) t += 10 * min(7, uccRate(k)); return t + 70 * max(0, n - 150); }
+  // UBv1C: Mystic crystal level where the UB energy bonus (0.15% x completions per level) reaches its 50% cap.
+  // Mystic crystals cap at grade 30 (wiki: Crystal Factory).
+  function mysticNote(n) {
+    if (!n) return "energy part caps at 50%";
+    const lvl = Math.ceil(50 / (0.15 * n) - 1e-9);
+    return lvl <= 30 ? `energy reaches the 50% cap at Mystic crystal ${lvl}`
+      : `energy tops out at ${+(4.5 * n).toFixed(1)}% with a grade 30 Mystic crystal (cap 50%)`;
+  }
   // UCC 1-20: each UCC gives 3 bonus completions, filled in this order, 10 per challenge
   const UCC_FILL = ["UUC", "PMC", "NDC", "1KC", "DRC", "CBC"];
   const uccCredit = code => n => { const i = UCC_FILL.indexOf(code); return max(0, min(10, 3 * min(n, 20) - 10 * i)); };
@@ -59,9 +71,10 @@
     { key: "planetLevel", group: "planet", label: "Planet level", fmt: "num", sources: [
       { ch: "UUC", f: per(1) },
       { score: "DBC", f: s => s, note: "1 per P.Baal killed in your best DBC" } ] },
+    { key: "psCost", group: "planet", label: "Powersurge overcap cost increase per level", fmt: "pct", lower: true, base: 200, prefix: "+", suffix: "%", unit: "base +200% per overcapped level", sources: [ { ch: "PSC", f: per(5), note: "−5% per PSC off the base +200%" } ] },
     { key: "ubEnergy", group: "planet", label: "UB energy drops", fmt: "pct", sources: [ { ch: "PMC", f: per(2) } ] },
-    { key: "ubRespawn", group: "planet", label: "UB respawn speed", fmt: "pct", sources: [ { ch: "NRC", f: per(1) } ] },
-    { key: "ubMystic", group: "planet", label: "UB GP & energy per Mystic Crystal level", fmt: "pct", unit: "energy part capped at 50%", sources: [ { ch: "UBv1C", f: per(0.15) } ] },
+    { key: "ubRespawn", group: "planet", label: "UB respawn time", fmt: "pct", lower: true, sources: [ { ch: "NRC", f: per(1) } ] },
+    { key: "ubMystic", group: "planet", label: "UB GP & energy per Mystic Crystal level", fmt: "pct", unit: "energy part capped at 50%", sources: [ { ch: "UBv1C", f: per(0.15), note: mysticNote } ] },
     { key: "planetCoP", group: "planet", label: "Planet multi per Clones on Planet+ level", fmt: "pct", sources: [ { ch: "UBv1C", f: per(0.01) } ] },
     { key: "ubv2Multi", group: "planet", label: "Multiplier from UBv2 kills", fmt: "x", unit: "all 5 UBv2s, compared with no UBV2C", sources: [ { ch: "UBV2C", f: ubv2, capN: 11, note: "11th completion is a hidden bonus" } ] },
     { key: "ubv4Rewards", group: "planet", label: "UBv4 rewards per ITRTGv1 kill", fmt: "pct", unit: "up to 10 kills per rebirth", sources: [ { ch: "LCv4C", f: per(5, { capN: 10 }) } ] },
@@ -73,7 +86,7 @@
     { key: "ghostGP", group: "gp", label: "Ghost GP for the GP stat multiplier", fmt: "num", sources: [ { ch: "GPAC", f: per(100, { at: 25, atV: 5000 }) } ] },
     { key: "ubGP", group: "gp", label: "Extra GP per UBv1 GP drop", fmt: "num", unit: "before the Dyson Harvester multiplier", sources: [
       { score: "DGPC", f: s => s > 0 ? max(0, 0.03 * Math.log(s) / Math.log(1.04) - 3) : 0 } ] },
-    { key: "bhGP", group: "gp", label: "Extra GP per hour from Black Holes", fmt: "num", unit: "0.05 GP/h for each BH, up to one per BHC", sources: [ { ch: "BHC", f: per(0.05) } ] },
+    { key: "bhGP", group: "gp", label: "GP chance per hour for each Black Hole", fmt: "pct", unit: "applies to 1 Black Hole per BHC done, on top of the 25% base for the first 4", sources: [ { ch: "BHC", f: n => n > 0 ? 5 : 0 } ] },
     { key: "bhDouble", group: "gp", label: "Chance to double Black Hole GP", fmt: "pct", sources: [ { ch: "1KBHC", f: per(5) } ] },
     { key: "bhCost", group: "gp", label: "Black Hole & upgrade material cost", fmt: "pct", lower: true, sources: [ { ch: "BHC", f: per(2) } ] },
     { key: "bhuGP", group: "gp", label: "GP from Black Hole upgrades after rebirth", fmt: "pct", unit: "after Might unlock", sources: [ { ch: "UBHC", f: per(5) } ] },
@@ -93,13 +106,12 @@
     { key: "unleash", group: "might", label: "Unleash strength", fmt: "pct", sources: [ { ch: "NMNRC", f: per(5, { capN: 20 }) } ] },
     { key: "unleashDMC", group: "might", label: "Unleash boost per usable Might skill level", fmt: "pct", sources: [
       { score: "DMC", f: s => Math.sqrt(min(s, 1150000)) / 500, maxS: 1150000 } ] },
-    { key: "unleashCd", group: "might", label: "Unleash cooldown", fmt: "min", lower: true, sources: [ { ch: "PUC", f: per(3, { at: 10, atV: 60 }) } ] },
-    { key: "etcClones", group: "might", label: "Fewer clones to cap the ETC training", fmt: "num", sources: [ { ch: "ETC", f: n => n > 1 ? 50000 * min(n - 1, 25) : 0, note: "starts at 1,250,001 clones" } ] },
+    { key: "unleashCd", group: "might", label: "Unleash cooldown", fmt: "min", lower: true, base: 60, suffix: " min", zero: "Instant", unit: "base 60 min", sources: [ { ch: "PUC", f: per(3, { at: 10, atV: 60 }) } ] },
 
     // ---------- Pets ----------
     { key: "campaign", group: "pets", label: "Pet campaign rewards", fmt: "pct", sources: [ { ch: "UPC", f: per(5) } ] },
-    { key: "campaignTime", group: "pets", label: "Campaign & dungeon tower time", fmt: "sph", lower: true, unit: "seconds saved per hour", sources: [
-      { score: "DNRC", f: s => s, note: "1 s per hour for each god in your best DNRC" } ] },
+    { key: "campaignTime", group: "pets", label: "Campaign & dungeon tower time", fmt: "pct", lower: true, unit: "1 second off each hour per god in your best DNRC", sources: [
+      { score: "DNRC", f: s => s / 36 } ] },
     { key: "petGrowth", group: "pets", label: "Pet growth", fmt: "pct", sources: [ { ch: "PGC", f: per(1, { at: 25, atV: 50 }) } ] },
     { key: "uccGrowth", group: "pets", label: "Base growth per pet from UCC 51+", fmt: "num", unit: "201 to every unlocked pet per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 201 * (n - 50) : 0 } ] },
     { key: "uccBacon", group: "pets", label: "Rebirth Bacon received from UCC 51+", fmt: "num", unit: "one-time, 500 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 500 * (n - 50) : 0 } ] },
@@ -110,7 +122,8 @@
     { key: "classXP", group: "pets", label: "Class XP outside dungeons", fmt: "pct", sources: [ { ch: "CEC", f: per(2) } ] },
     { key: "dungeonRoom", group: "pets", label: "Dungeon room time", fmt: "pct", lower: true, sources: [ { ch: "NRDC", f: per(1, { capN: 20 }) } ] },
     { key: "craft", group: "pets", label: "Blacksmith crafting speed & quality", fmt: "pct", sources: [
-      { ch: "PCC", f: per(0.5) }, { ch: "USC", f: per(1), note: "Rune Patch, when equipped" } ] },
+      { ch: "PCC", f: per(0.5) } ] },
+    { key: "runePatch", group: "pets", label: "Rune Patch crafting speed & quality", fmt: "pct", unit: "one piece of armor: only the blacksmith wearing it", sources: [ { ch: "USC", f: per(1) } ] },
 
     // ---------- Crystals ----------
     { key: "cpCrystal", group: "crystal", label: "Crystal Power per crystal", fmt: "pct", sources: [ { ch: "MCC", f: n => n <= 20 ? 2.5 * n : 50 + 5 * min(n - 20, 10) } ] },
@@ -132,7 +145,7 @@
     { key: "buildSpeed", group: "create", label: "Building speed", fmt: "pct", sources: [ { ch: "UfCC", f: per(0.5, { at: 25, atV: 25 }) } ] },
 
     // ---------- Divinity ----------
-    { key: "dgUpg", group: "div", label: "Divinity Generator upgrade cost", fmt: "pct", lower: true, sources: [ { ch: "DAC", f: per(10, { capN: 10 }) } ] },
+    { key: "dgUpg", group: "div", label: "Divinity Generator upgrade cost", fmt: "pct", lower: true, free: "Free", sources: [ { ch: "DAC", f: per(10, { capN: 10 }) } ] },
     { key: "dgGods", group: "div", label: "Extra gods counted for Div Gen stats", fmt: "num", sources: [ { ch: "NDC", f: per(2) } ] },
     { key: "workerFill", group: "div", label: "Worker clone filling speed", fmt: "pct", sources: [ { ch: "DGC", f: per(12) } ] },
     { key: "overcapDiv", group: "div", label: "Divinity from over-capping", fmt: "pct", sources: [ { ch: "DGC", f: per(5) } ] },
@@ -154,6 +167,7 @@
     { key: "achBonus", group: "stats", label: "Achievement bonus", fmt: "pct", sources: [ { ch: "AAC", f: n => min(55, 2 * n) } ] },
     { key: "achReq", group: "stats", label: "Achievement level requirements", fmt: "pct", lower: true, sources: [ { ch: "AAC", f: n => min(50, 2 * n) } ] },
     { key: "trainStats", group: "stats", label: "Stats from skills & physical training", fmt: "pct", sources: [ { ch: "NTC", f: per(5) } ] },
+    { key: "etcClones", group: "stats", label: "Clones needed to cap the ETC training", fmt: "num", lower: true, base: 1250001, unit: "starts at 1,250,001; −50,000 per completion after the first", sources: [ { ch: "ETC", f: n => n > 1 ? 50000 * min(n - 1, 25) : 0 } ] },
     { key: "timeMulti", group: "stats", label: "Rebirth time multiplier", fmt: "pct", sources: [ { ch: "TGSC", f: n => n >= 26 ? 100 : 2 * min(n, 25) } ] },
     { key: "tbs", group: "stats", label: "TBS levels after every rebirth", fmt: "num", sources: [ { score: "DUC", f: s => s > 1 ? log2(s) : 0 } ] },
     { key: "baalPower", group: "stats", label: "Baal Power from P.Baals", fmt: "pct", sources: [ { ch: "UGC", f: per(2, { at: 20, atV: 50 }) } ] },
@@ -168,7 +182,6 @@
     { key: "sdGhost", group: "mv", label: "Ghost SpaceDim levels & soft cap", fmt: "num", sources: [ { ch: "SDAC", f: per(2) } ] },
     { key: "mvSpeed", group: "mv", label: "Multiverse leveling speed", fmt: "pct", sources: [ { ch: "UMC", f: n => n > 1 ? min(100, 5 * (n - 1)) : 0, note: "from the 2nd completion" } ] },
     { key: "mvBoost", group: "mv", label: "Multiverse Boost divinity/sec", fmt: "pct", sources: [ { score: "DMVC", f: s => s, maxS: 3330 } ] },
-    { key: "psCost", group: "mv", label: "Powersurge overcap cost", fmt: "pct", lower: true, sources: [ { ch: "PSC", f: per(5) } ] },
     { key: "ofp", group: "mv", label: "Overflow point multiplier", fmt: "pct", sources: [ { ch: "UCC", f: uccOfp, note: "from UCC 21" } ] },
     { key: "ocCap", group: "mv", label: "Max points per Overflow Challenge", fmt: "num", unit: "base 500", sources: [ { ch: "UCC", f: n => uccOcCap(n) - 500, note: "from UCC 21" } ] },
     { key: "ocLevels", group: "mv", label: "Free levels on each OC purchase", fmt: "num", sources: [ { ch: "UCC", f: n => n >= 55 ? Math.floor((n - 50) / 5) : 0, note: "1 per 5 UCCs from UCC 55" } ] },
@@ -245,12 +258,12 @@
   function lineFor(e, s, imp, byCode) {
     if (s.stat) {
       const sv = imp ? imp.stats[s.stat] : null;
-      return { code: s.label, type: s.type, stat: true, have: sv, v: imp ? (sv != null ? s.f(sv) : 0) : null, max: null, each: s.f(1), note: s.note };
+      return { code: s.label, type: s.type, stat: true, have: sv, v: imp ? (sv != null ? s.f(sv) : 0) : null, max: null, each: s.f(1), note: typeof s.note === "function" ? s.note(n) : s.note };
     }
     if (s.score) {
       const sc = imp ? imp.scores[s.score] : null;
-      if (e.fmt === "flag") return { code: s.score, have: sc, score: true, v: imp ? (sc >= s.min ? 1 : 0) : null, max: 1, at: s.min, note: s.note };
-      return { code: s.score, have: sc, score: true, v: imp ? (sc != null ? s.f(sc) : 0) : null, max: s.maxS != null ? s.f(s.maxS) : null, note: s.note };
+      if (e.fmt === "flag") return { code: s.score, have: sc, score: true, v: imp ? (sc >= s.min ? 1 : 0) : null, max: 1, at: s.min, note: typeof s.note === "function" ? s.note(n) : s.note };
+      return { code: s.score, have: sc, score: true, v: imp ? (sc != null ? s.f(sc) : 0) : null, max: s.maxS != null ? s.f(s.maxS) : null, note: typeof s.note === "function" ? s.note(n) : s.note };
     }
     const n = imp ? imp.done[s.ch] || 0 : null;
     let cap = imp ? imp.cap[s.ch] : null;
@@ -259,11 +272,11 @@
     const capN = s.capN != null ? s.capN : cap;   // capN on a source overrides the export cap (UBV2C counts an 11th)
     if (e.fmt === "flag") {
       const at = s.at === "cap" ? cap : s.at;
-      return { code: s.ch, have: n, cap, v: imp ? (at != null && n >= at ? 1 : 0) : null, max: 1, at, note: s.note };
+      return { code: s.ch, have: n, cap, v: imp ? (at != null && n >= at ? 1 : 0) : null, max: 1, at, note: typeof s.note === "function" ? s.note(n) : s.note };
     }
     const v = imp ? (n > 0 ? s.f(capN != null && !unlimited ? min(n, capN) : n, cap) : 0) : null;
     const mx = unlimited || capN == null ? null : s.f(capN, cap);
-    return { code: s.ch, have: n, cap, v, max: mx, each: s.f(1, cap), note: s.note };
+    return { code: s.ch, have: n, cap, v, max: mx, each: s.f(1, cap), note: typeof s.note === "function" ? s.note(n) : s.note };
   }
   function evaluate(imp, byCode) {
     if (!imp) return [];

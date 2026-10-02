@@ -810,7 +810,7 @@
         val = imp ? (l.v ? "✓" : when) : when;
       } else if (imp) {
         val = rval(e, l.v) + (l.max == null ? "" : l.v >= l.max - 1e-9 ? " · maxed" : ` of ${rval(e, l.max)}`);
-      } else if (l.max != null) val = "up to " + rval(e, l.max);
+      } else if (l.max != null) val = (e.base != null ? "down to " : "up to ") + rval(e, l.max);
       else val = l.each ? rval(e, l.each) + " each" : "grows with score";
       const sub = [e.unit, l.note].filter(Boolean).join(" · ");
       return `<li class="${imp && !l.v ? "no" : ""}"><span>${esc(e.label)}${sub ? `<small>${esc(sub)}</small>` : ""}</span><b>${esc(val)}</b></li>`;
@@ -964,6 +964,8 @@
     return (+v.toFixed(d)).toLocaleString("en-US", { maximumFractionDigits: d });
   };
   function rval(e, v) {
+    if (e.base != null) { const left = e.base - v; return left <= 1e-9 && e.zero ? e.zero : (e.prefix || "") + rnum(left) + (e.suffix || ""); }
+    if (e.free && v >= 100 - 1e-9) return e.free;
     const sign = v === 0 ? "" : e.lower ? "−" : "+";   // no sign on zero ("0%", not "−0%")
     switch (e.fmt) {
       case "pct": return sign + rnum(v) + "%";
@@ -1026,7 +1028,7 @@
       else have = l.cap != null && l.cap < 9999 ? `${l.have}/${l.cap}` : `×${l.have}`;
       const mid = (maxed ? "maxed " : "") + have;
       const val = flag ? (l.v ? "✓" : `needs ${l.at}`) : rval(e, l.v);
-      const sub = [!flag && !maxed && l.max != null ? "max " + rval(e, l.max) : "", l.note].filter(Boolean).join(" · ");
+      const sub = [!flag && !maxed && l.max != null ? (e.base != null ? "down to " : "max ") + rval(e, l.max) : "", l.note].filter(Boolean).join(" · ");
       const pill = BY[l.code] ? `<button type="button" class="rw-pill" data-go="${esc(l.code)}" style="--c:${col}" title="Open ${esc(l.code)} details">${esc(l.code)}</button>`
         : `<span class="rw-pill" style="--c:${col}">${esc(l.code)}</span>`;
       return `<div class="rw-row${l.v ? "" : " no"}">${pill}<span class="rw-mid">${esc(mid)}</span><b>${esc(val)}</b></div>${sub ? `<div class="rw-sub">${esc(sub)}</div>` : ""}`;
