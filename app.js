@@ -963,7 +963,7 @@
           <span class="rw-v">${esc(rval(e, e.total))}</span>
           <span class="rw-l">${esc(e.label)}</span>
           ${e.unit ? `<span class="rw-u">${esc(e.unit)}</span>` : ""}
-          <span class="rw-s">${e.lines.map(l => `<i style="--c:${T[BY[l.code]?.type || "N"].color}"${l.v ? "" : ' class="no"'}>${esc(l.code)}</i>`).join("")}</span></button>`;
+          <span class="rw-s">${e.lines.map(l => `<i style="--c:${T[l.type || BY[l.code]?.type || "N"].color}"${l.v ? "" : ' class="no"'}>${esc(l.code)}</i>`).join("")}</span></button>`;
       }
       h += `</div></section>`;
     }
@@ -973,9 +973,10 @@
   }
   function tipHTML(e) {
     const rows = e.lines.map(l => {
-      const c = BY[l.code], col = T[c?.type || "N"].color;
+      const c = BY[l.code], col = T[l.type || c?.type || "N"].color;
       let have;
-      if (l.score) have = l.have == null ? "not played" : "best " + fmt(l.have);
+      if (l.stat) have = l.have == null ? "not in export" : fmt(l.have) + " points";
+      else if (l.score) have = l.have == null ? "not played" : "best " + fmt(l.have);
       else have = l.cap != null && l.cap < 9999 ? `${l.have}/${l.cap}` : `×${l.have}`;
       let val, mx = "";
       if (e.fmt === "flag") { val = l.v ? "✓ unlocked" : `needs ${l.at}`; }

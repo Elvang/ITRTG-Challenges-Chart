@@ -13,11 +13,13 @@
 //           unless the source sets capN. Unlimited challenges (cap 9,999) have no max.
 //    score: day challenge / RTI code. f(s) gets the best score. maxS = score where the reward stops growing.
 //    at   : flags only. Unlocked once n >= at.
+//    stat : a number from the export's stats (e.g. hmChp). f(v) gets it. Needs label and type for the tooltip.
 //    note : optional text shown in the tooltip line.
 //
 //  Reward wording: itrtg.wiki.gg challenge pages, "Reward" sections (checked 2026-10-01),
 //  CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
-//  Root and Hard Mode challenges are not in the stats export, so they aren't counted here.
+//  Root and Hard Mode challenges aren't listed one by one in the export. Both pay out Hard Mode points
+//  (HM: 1 each, Root: 1-5 each), and the export has that total, so they show up through the HM points cards.
 // =====================================================================
 (function (root) {
   const min = Math.min, max = Math.max;
@@ -29,6 +31,9 @@
   const uccRate = k => min(8, Math.floor((k - 21) / 10) + 1);
   function uccOfp(n) { let t = 0; for (let k = 21; k <= min(n, 150); k++) t += uccRate(k); return t; }
   function uccOcCap(n) { let t = 500; for (let k = 21; k <= min(n, 150); k++) t += 10 * min(7, uccRate(k)); return t + 70 * max(0, n - 150); }
+  // UCC 1-20: each UCC gives 3 bonus completions, filled in this order, 10 per challenge
+  const UCC_FILL = ["UUC", "PMC", "NDC", "1KC", "DRC", "CBC"];
+  const uccCredit = code => n => { const i = UCC_FILL.indexOf(code); return max(0, min(10, 3 * min(n, 20) - 10 * i)); };
   // UBV2C: product over the 5 UBv2 tiers of (1 + k + 0.1kn), compared with no completions (×720)
   function ubv2(n) { n = min(n, 11); let p = 1; for (let k = 1; k <= 5; k++) p *= 1 + k + 0.1 * k * n; return p / 720; }
 
@@ -44,6 +49,8 @@
     { key: "stats", label: "Stats, Rebirth & RTI" },
     { key: "mv", label: "SpaceDim, Multiverse & Overflow" },
     { key: "clones", label: "Clones" },
+    { key: "hm", label: "Hard Mode points (Hard Mode + Root challenges)" },
+    { key: "ucc", label: "Extra completions from UCC" },
     { key: "unlock", label: "Unlocked extras" },
   ];
 
@@ -71,6 +78,7 @@
     { key: "bhCost", group: "gp", label: "Black Hole & upgrade material cost", fmt: "pct", lower: true, sources: [ { ch: "BHC", f: per(2) } ] },
     { key: "bhuGP", group: "gp", label: "GP from Black Hole upgrades after rebirth", fmt: "pct", unit: "after Might unlock", sources: [ { ch: "UBHC", f: per(5) } ] },
     { key: "bhPlus", group: "gp", label: "BH multi per Black Hole+ might level", fmt: "pct", sources: [ { ch: "1KBHC", f: per(0.01) } ] },
+    { key: "uccGP", group: "gp", label: "God Power received from UCC 51+", fmt: "num", unit: "one-time, 10,000 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 10000 * (n - 50) : 0 } ] },
     { key: "pbaalGrowth", group: "gp", label: "P.Baal growth reduction", fmt: "pct", lower: true, cap: 50, sources: [
       { ch: "UBC", f: per(1, { capN: 50 }) }, { ch: "UAC", f: per(2) } ] },
 
@@ -93,6 +101,8 @@
     { key: "campaignTime", group: "pets", label: "Campaign & dungeon tower time", fmt: "sph", lower: true, unit: "seconds saved per hour", sources: [
       { score: "DNRC", f: s => s, note: "1 s per hour for each god in your best DNRC" } ] },
     { key: "petGrowth", group: "pets", label: "Pet growth", fmt: "pct", sources: [ { ch: "PGC", f: per(1, { at: 25, atV: 50 }) } ] },
+    { key: "uccGrowth", group: "pets", label: "Base growth per pet from UCC 51+", fmt: "num", unit: "201 to every unlocked pet per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 201 * (n - 50) : 0 } ] },
+    { key: "uccBacon", group: "pets", label: "Rebirth Bacon received from UCC 51+", fmt: "num", unit: "one-time, 500 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 500 * (n - 50) : 0 } ] },
     { key: "petStats", group: "pets", label: "Pet normal (non-dungeon) stats", fmt: "pct", sources: [ { ch: "TGC", f: per(2.5) } ] },
     { key: "food", group: "pets", label: "Pet food efficiency", fmt: "pct", sources: [ { score: "DPC", f: s => s > 0 ? min(100, max(0, log2(s * 100))) : 0, maxS: 1.14e30 } ] },
     { key: "petStart", group: "pets", label: "Pet starting levels after rebirth", fmt: "num", sources: [ { ch: "PLC", f: per(20) } ] },
@@ -149,6 +159,8 @@
     { key: "baalPower", group: "stats", label: "Baal Power from P.Baals", fmt: "pct", sources: [ { ch: "UGC", f: per(2, { at: 20, atV: 50 }) } ] },
     { key: "baalPowerUB", group: "stats", label: "Baal Power per UBv1 kill × UB tier", fmt: "pct", unit: "total bonus capped at 300%", sources: [ { ch: "LCNRC", f: per(0.1) } ] },
     { key: "rtiTemp", group: "stats", label: "RTI temp leveling speed", fmt: "pct", sources: [ { ch: "TLC", f: per(1) } ] },
+    { key: "pbaalMax", group: "stats", label: "Max P.Baal raised above v147", fmt: "num", unit: "Higher P Baal (UOC points) raises it further; not in the export", sources: [
+      { score: "RTI", f: s => max(0, s + 10 - 147), note: "max P.Baal becomes RTI score + 10" } ] },
     { key: "rtiCap", group: "stats", label: "RTI base multiplier cap", fmt: "pct", sources: [ { score: "RTI", f: s => 2 * max(0, s - 100), note: "+2% per P.Baal over v100" } ] },
 
     // ---------- SpaceDim, Multiverse & Overflow ----------
@@ -166,6 +178,21 @@
     { key: "ghostClones", group: "clones", label: "Ghost clones per RTI & Might element", fmt: "pct", unit: "% of max clones", sources: [ { ch: "CCC", f: per(0.01) } ] },
     { key: "lcBuys", group: "clones", label: "Light clones per buy", fmt: "pct", sources: [ { ch: "LCC", f: per(1) } ] },
     { key: "lcBase", group: "clones", label: "Base light clones before the cost rises", fmt: "num", sources: [ { ch: "SDRC", f: per(10) } ] },
+
+    // ---------- Hard Mode points (each HM completion = 1, each Root completion = 1-5) ----------
+    { key: "hmStats", group: "hm", label: "Physical, Mystic, Battle & Creating", fmt: "pct", sources: [ { stat: "hmChp", label: "HM pts", type: "HM", f: v => 0.25 * v, note: "0.25% per Hard Mode point" } ] },
+    { key: "hmSpeed", group: "hm", label: "Building Speed & Creating Speed", fmt: "pct", sources: [ { stat: "hmChp", label: "HM pts", type: "HM", f: v => 0.25 * v, note: "0.25% per Hard Mode point" } ] },
+    { key: "hmRegen", group: "hm", label: "HP Regen", fmt: "pct", sources: [ { stat: "hmChp", label: "HM pts", type: "HM", f: v => 10 * v, note: "10% per Hard Mode point" } ] },
+
+    // ---------- Extra completions from UCC ----------
+    // UCC 1-20 add completions (with their rewards) to six challenges, 3 per UCC in this order.
+    // UCC 20 also adds completions to GSC, CPC and AAC, and raises the cap of NRC and PBC (cap only: you still have to do them).
+    ...["UUC", "PMC", "NDC", "1KC", "DRC", "CBC"].map(c => ({ key: "ucc" + c, group: "ucc", label: c + " completions", fmt: "num", unit: "bonus completions, rewards included",
+      sources: [ { ch: "UCC", f: uccCredit(c), capN: 20 } ] })),
+    ...[["GSC", 5], ["CPC", 5], ["AAC", 3]].map(([c, v]) => ({ key: "ucc" + c, group: "ucc", label: c + " completions", fmt: "num", unit: "bonus completions at UCC 20, rewards included",
+      sources: [ { ch: "UCC", f: n => n >= 20 ? v : 0, capN: 20 } ] })),
+    ...[["NRC", 5], ["PBC", 25]].map(([c, v]) => ({ key: "ucc" + c, group: "ucc", label: c + " completion cap", fmt: "num", unit: "higher cap at UCC 20; complete them for the rewards",
+      sources: [ { ch: "UCC", f: n => n >= 20 ? v : 0, capN: 20 } ] })),
 
     // ---------- Unlocked extras (yes / no) ----------
     { key: "fGpPet", group: "unlock", label: "God Power pet can evolve", fmt: "flag", sources: [ { ch: "GPC", at: 25 } ] },
@@ -201,6 +228,10 @@
     if (!imp) return [];
     return effects.map(e => {
       const lines = e.sources.map(s => {
+        if (s.stat) {
+          const sv = imp.stats[s.stat];
+          return { code: s.label, type: s.type, stat: true, have: sv, v: sv != null ? s.f(sv) : 0, max: null, note: s.note };
+        }
         if (s.score) {
           const sc = imp.scores[s.score];
           const v = sc != null ? s.f(sc) : 0;

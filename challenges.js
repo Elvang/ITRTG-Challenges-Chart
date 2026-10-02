@@ -76,25 +76,25 @@ window.ITRTG = {
    "label": "Day / Score",
    "color": "#6600CC",
    "light": "#CC99FF",
-   "blurb": "Timed; best score kept"
+   "blurb": "24-hour limit (RTI: 7 days); best score counts"
   },
   "U": {
    "label": "Unlimited",
    "color": "#999900",
    "light": "#FFFF99",
-   "blurb": "Infinitely repeatable"
+   "blurb": "Rewards from every completion, no cap"
   },
   "HM": {
    "label": "Hard Mode",
    "color": "#990000",
    "light": "#FF9999",
-   "blurb": "Needs 10k ChP + base challenge maxed"
+   "blurb": "Harder repeats of a maxed challenge; gives HM points"
   },
   "R": {
    "label": "Root",
    "color": "#CC0066",
    "light": "#FF99CC",
-   "blurb": "Needs 25k ChP milestone + RTI v140"
+   "blurb": "Your stats raised to an exponent; gives 1-5 HM points"
   }
  },
  "bands": [
