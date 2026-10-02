@@ -502,13 +502,17 @@
 
   // pointer handling: drag to pan, pinch to zoom, click passes through when not dragged
   const pts = new Map(); let drag = null, moved = false;
+  // Controls that keep their own click/drag. On the Rewards page the cards are buttons, but dragging on them
+  // should still scroll, like dragging on a box pans the map.
+  const NO_DRAG = "a, button:not(.rw-card), input, textarea, label, .legend, .zoom, .credit, .drawer";
   vp.addEventListener("pointerdown", e => {
-    if (e.target.closest("a, button, input, textarea, .legend, .zoom, .credit, .drawer")) return;
+    if (e.target.closest(NO_DRAG)) return;
     if (e.pointerType === "mouse" && e.button !== 0) return;   // only the left button pans
     // stop the browser from starting a text selection or a native drag of whatever is under the cursor
     if (e.pointerType === "mouse") e.preventDefault();
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pts.size === 1) { drag = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y }; moved = false; }
+    if (pts.size === 1) { drag = { x: e.clientX, y: e.clientY, cx: cam.x, cy: cam.y, st: RW.scrollTop }; moved = false; }
+    if (view === "rewards") return;   // the Rewards page only scrolls; no pinch zoom
     if (pts.size === 2) {
       const [a, b] = [...pts.values()];
       drag = { pinch: Math.hypot(a.x - b.x, a.y - b.y), k: cam.k, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, cx: cam.x, cy: cam.y };
@@ -516,6 +520,14 @@
   });
   vp.addEventListener("pointermove", e => {
     if (!pts.has(e.pointerId) || !drag) return;
+    if (view === "rewards") {
+      // drag scrolls the Rewards page up and down
+      const dy = e.clientY - drag.y;
+      if (!moved && Math.hypot(e.clientX - drag.x, dy) < 5) return;
+      if (!moved) { moved = true; vp.setPointerCapture(e.pointerId); vp.classList.add("dragging"); hideTip(); }
+      RW.scrollTop = drag.st - dy;
+      return;
+    }
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const r = vp.getBoundingClientRect();
     if (drag.pinch && pts.size === 2) {
@@ -541,12 +553,17 @@
     pane.scrollLeft = 0; pane.scrollTop = 0;
   });
   vp.addEventListener("dragstart", e => { if (!e.target.closest(".drawer, .legend")) e.preventDefault(); });
-  vp.addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest("a, button, input, textarea, .legend, .zoom, .credit, .drawer")) e.preventDefault(); });
+  vp.addEventListener("mousedown", e => { if (e.button === 0 && !e.target.closest(NO_DRAG)) e.preventDefault(); });
   const endPtr = e => { pts.delete(e.pointerId); if (!pts.size) { drag = null; vp.classList.remove("dragging"); } };
   vp.addEventListener("pointerup", endPtr); vp.addEventListener("pointercancel", endPtr);
   vp.addEventListener("wheel", e => {
     e.preventDefault();
     const r = vp.getBoundingClientRect();
+    if (view === "rewards") {   // the wheel scrolls the Rewards page (no zoom there)
+      const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? RW.clientHeight : 1;
+      RW.scrollTop += (e.shiftKey && !e.deltaY ? 0 : e.deltaY) * k;
+      return;
+    }
     if (e.ctrlKey || e.metaKey || e.altKey) zoomAt(Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top);
     else if (e.shiftKey && !e.deltaX) setCam({ x: cam.x - e.deltaY, y: cam.y, k: cam.k });
     else setCam({ x: cam.x - e.deltaX, y: cam.y - e.deltaY, k: cam.k });
@@ -1031,6 +1048,7 @@
   RW.addEventListener("click", e => {
     if (e.target.closest("#rw-import")) { openModal(); return; }
     const c = e.target.closest(".rw-card");
+    if (c && moved) return;   // end of a drag, not a click
     if (c) { c === tipFor && tip.hidden === false && e.pointerType !== "mouse" ? hideTip() : showTip(c); }
   });
   RW.addEventListener("change", e => { if (e.target.id === "rw-all") { rwShowAll = e.target.checked; store.set("itrtg.rwAll", rwShowAll ? "1" : "0"); hideTip(); renderRewards(); } });
