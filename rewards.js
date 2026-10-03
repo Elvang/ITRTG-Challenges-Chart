@@ -9,6 +9,8 @@
 //    mode : add (default, values summed) | mul (1+a)(1+b)-1 | reduce 1-(1-a)(1-b)
 //    base : show what's left instead of the reduction: prefix + (base - value) + suffix ("51 min").
 //           zero is the text when nothing is left ("Instant").
+//    oneTime: a one-off or consumable gift (GP, Rebirth Bacon, growth, resets). Kept out of the Rewards tab,
+//           listed as "one-time" in the details panel.
 //    free : text shown when a lower-is-better percentage reaches 100 ("Free").
 //    Time and duration rewards are phrased as "... time" with a percentage off, so they read the same way.
 //  Source fields:
@@ -63,7 +65,6 @@
     { key: "clones", label: "Clones" },
     { key: "hm", label: "Hard Mode points (Hard Mode + Root challenges)" },
     { key: "ucc", label: "Extra completions from UCC" },
-    { key: "unlock", label: "Unlocked extras" },
   ];
 
   const effects = [
@@ -91,7 +92,7 @@
     { key: "bhCost", group: "gp", label: "Black Hole & upgrade material cost", fmt: "pct", lower: true, sources: [ { ch: "BHC", f: per(2) } ] },
     { key: "bhuGP", group: "gp", label: "GP from Black Hole upgrades after rebirth", fmt: "pct", unit: "after Might unlock", sources: [ { ch: "UBHC", f: per(5) } ] },
     { key: "bhPlus", group: "gp", label: "BH multi per Black Hole+ might level", fmt: "pct", sources: [ { ch: "1KBHC", f: per(0.01) } ] },
-    { key: "uccGP", group: "gp", label: "God Power received from UCC 51+", fmt: "num", unit: "one-time, 10,000 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 10000 * (n - 50) : 0 } ] },
+    { key: "uccGP", oneTime: true, group: "gp", label: "God Power received from UCC 51+", fmt: "num", unit: "10,000 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 10000 * (n - 50) : 0 } ] },
     { key: "pbaalGrowth", group: "gp", label: "P.Baal growth reduction", fmt: "pct", lower: true, cap: 50, sources: [
       { ch: "UBC", f: per(1, { capN: 50 }) }, { ch: "UAC", f: per(2) } ] },
 
@@ -113,8 +114,8 @@
     { key: "campaignTime", group: "pets", label: "Campaign & dungeon tower time", fmt: "pct", lower: true, unit: "1 second off each hour per god in your best DNRC", sources: [
       { score: "DNRC", f: s => s / 36 } ] },
     { key: "petGrowth", group: "pets", label: "Pet growth", fmt: "pct", sources: [ { ch: "PGC", f: per(1, { at: 25, atV: 50 }) } ] },
-    { key: "uccGrowth", group: "pets", label: "Base growth per pet from UCC 51+", fmt: "num", unit: "201 to every unlocked pet per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 201 * (n - 50) : 0 } ] },
-    { key: "uccBacon", group: "pets", label: "Rebirth Bacon received from UCC 51+", fmt: "num", unit: "one-time, 500 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 500 * (n - 50) : 0 } ] },
+    { key: "uccGrowth", oneTime: true, group: "pets", label: "Base growth per pet from UCC 51+", fmt: "num", unit: "201 per UCC to each pet unlocked at the time", sources: [ { ch: "UCC", f: n => n > 50 ? 201 * (n - 50) : 0 } ] },
+    { key: "uccBacon", oneTime: true, group: "pets", label: "Rebirth Bacon received from UCC 51+", fmt: "num", unit: "500 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 500 * (n - 50) : 0 } ] },
     { key: "petStats", group: "pets", label: "Pet normal (non-dungeon) stats", fmt: "pct", sources: [ { ch: "TGC", f: per(2.5) } ] },
     { key: "food", group: "pets", label: "Pet food efficiency", fmt: "pct", sources: [ { score: "DPC", f: s => s > 0 ? min(100, max(0, log2(s * 100))) : 0, maxS: 1.14e30 } ] },
     { key: "petStart", group: "pets", label: "Pet starting levels after rebirth", fmt: "num", sources: [ { ch: "PLC", f: per(20) } ] },
@@ -170,8 +171,8 @@
     { key: "etcClones", group: "stats", label: "Clones needed to cap the ETC training", fmt: "num", lower: true, base: 1250001, unit: "starts at 1,250,001; −50,000 per completion after the first", sources: [ { ch: "ETC", f: n => n > 1 ? 50000 * min(n - 1, 25) : 0 } ] },
     { key: "timeMulti", group: "stats", label: "Rebirth time multiplier", fmt: "pct", sources: [ { ch: "TGSC", f: n => n >= 26 ? 100 : 2 * min(n, 25) } ] },
     { key: "tbs", group: "stats", label: "TBS levels after every rebirth", fmt: "num", sources: [ { score: "DUC", f: s => s > 1 ? log2(s) : 0 } ] },
-    { key: "baalPower", group: "stats", label: "Baal Power from P.Baals", fmt: "pct", sources: [ { ch: "UGC", f: per(2, { at: 20, atV: 50 }) } ] },
-    { key: "baalPowerUB", group: "stats", label: "Baal Power per UBv1 kill × UB tier", fmt: "pct", unit: "total bonus capped at 300%", sources: [ { ch: "LCNRC", f: per(0.1) } ] },
+    { key: "baalPower", group: "clones", label: "Baal Power from P.Baals", fmt: "pct", sources: [ { ch: "UGC", f: per(2, { at: 20, atV: 50 }) } ] },
+    { key: "baalPowerUB", group: "clones", label: "Baal Power per UBv1 kill × UB tier", fmt: "pct", unit: "total bonus capped at 300%", sources: [ { ch: "LCNRC", f: per(0.1) } ] },
     { key: "rtiTemp", group: "stats", label: "RTI temp leveling speed", fmt: "pct", sources: [ { ch: "TLC", f: per(1) } ] },
     { key: "pbaalMax", group: "stats", label: "Max P.Baal raised above v147", fmt: "num", unit: "Higher P Baal (UOC points) raises it further; not in the export", sources: [
       { score: "RTI", f: s => max(0, s + 10 - 147), note: "max P.Baal becomes RTI score + 10" } ] },
@@ -182,9 +183,9 @@
     { key: "sdGhost", group: "mv", label: "Ghost SpaceDim levels & soft cap", fmt: "num", sources: [ { ch: "SDAC", f: per(2) } ] },
     { key: "mvSpeed", group: "mv", label: "Multiverse leveling speed", fmt: "pct", sources: [ { ch: "UMC", f: n => n > 1 ? min(100, 5 * (n - 1)) : 0, note: "from the 2nd completion" } ] },
     { key: "mvBoost", group: "mv", label: "Multiverse Boost divinity/sec", fmt: "pct", sources: [ { score: "DMVC", f: s => s, maxS: 3330 } ] },
-    { key: "ofp", group: "mv", label: "Overflow point multiplier", fmt: "pct", sources: [ { ch: "UCC", f: uccOfp, note: "from UCC 21" } ] },
-    { key: "ocCap", group: "mv", label: "Max points per Overflow Challenge", fmt: "num", unit: "base 500", sources: [ { ch: "UCC", f: n => uccOcCap(n) - 500, note: "from UCC 21" } ] },
-    { key: "ocLevels", group: "mv", label: "Free levels on each OC purchase", fmt: "num", sources: [ { ch: "UCC", f: n => n >= 55 ? Math.floor((n - 50) / 5) : 0, note: "1 per 5 UCCs from UCC 55" } ] },
+    { key: "ofp", group: "mv", label: "Overflow Points multiplier", fmt: "pct", unit: "applies to points already earned too", sources: [ { ch: "UCC", f: uccOfp, note: "1-8% per UCC from UCC 21, up to UCC 150" } ] },
+    { key: "ocCap", group: "mv", label: "Max points per Overflow Challenge", fmt: "num", unit: "on top of the base 500", sources: [ { ch: "UCC", f: n => uccOcCap(n) - 500, note: "from UCC 21" } ] },
+    { key: "ocLevels", group: "mv", label: "Bonus levels on every Overflow Points upgrade", fmt: "num", unit: "free, and they don't raise its price; capped upgrades stay at their cap", sources: [ { ch: "UCC", f: n => n >= 55 ? Math.floor((n - 50) / 5) : 0, note: "1 per 5 UCCs from UCC 55" } ] },
 
     // ---------- Clones ----------
     { key: "maxClones", group: "clones", label: "Max clones", fmt: "num", sources: [ { ch: "CBC", f: per(20000) } ] },
@@ -207,43 +208,43 @@
     ...[["NRC", 5], ["PBC", 25]].map(([c, v]) => ({ key: "ucc" + c, group: "ucc", label: c + " completion cap", fmt: "num", unit: "higher cap at UCC 20; complete them for the rewards",
       sources: [ { ch: "UCC", f: n => n >= 20 ? v : 0, capN: 20 } ] })),
 
-    // ---------- Unlocked extras (yes / no) ----------
-    { key: "fGpPetGet", group: "unlock", label: "God Power pet", fmt: "flag", sources: [ { ch: "GPC", at: 1 } ] },
-    { key: "fCfV2", group: "unlock", label: "Crystal Factory & UBv2 unlocked for good", fmt: "flag", sources: [ { ch: "UUC", at: 1 }, { ch: "UBC", at: 1 } ] },
-    { key: "fWolf", group: "unlock", label: "Wolf pet unlock (25 UBC)", fmt: "flag", sources: [ { ch: "UBC", at: 25 } ] },
-    { key: "fTurtle", group: "unlock", label: "Turtle pet", fmt: "flag", sources: [ { ch: "UAC", at: 1 } ] },
-    { key: "fTurtleEvo", group: "unlock", label: "Turtle can evolve (+300,000 pet stones)", fmt: "flag", sources: [ { ch: "UAC", at: 2 } ] },
-    { key: "fRunePatch", group: "unlock", label: "Rune Patch blacksmith armor", fmt: "flag", sources: [ { ch: "USC", at: 1 } ] },
-    { key: "fRunePatchMax", group: "unlock", label: "Rune Patch dungeon damage bonus", fmt: "flag", sources: [ { ch: "USC", at: 25 } ] },
-    { key: "fMvTab", group: "unlock", label: "Multiverse tab", fmt: "flag", sources: [ { ch: "UMC", at: 1 } ] },
-    { key: "fMvBoost", group: "unlock", label: "Multiverse Boost", fmt: "flag", sources: [ { score: "DMVC", min: 1 } ] },
-    { key: "fMvElements", group: "unlock", label: "Multiverse Rebirth Multi, God Power & Pet Growth", fmt: "flag", sources: [ { ch: "UOC", at: 1 } ] },
-    { key: "fDivGenEarly", group: "unlock", label: "Divinity Generator without building all monuments", fmt: "flag", sources: [ { ch: "DAC", at: 1 } ] },
-    { key: "fBhPlus", group: "unlock", label: "Black Hole+ might", fmt: "flag", sources: [ { ch: "1KBHC", at: 1 } ] },
-    { key: "fSdg", group: "unlock", label: "Super Divinity Generator", fmt: "flag", sources: [ { ch: "SDGC", at: 1 } ] },
-    { key: "fEtcTraining", group: "unlock", label: "29th training and skill", fmt: "flag", sources: [ { ch: "ETC", at: 1 } ] },
-    { key: "fCamp24", group: "unlock", label: "24-hour pet campaigns", fmt: "flag", sources: [ { score: "DNRC", min: 38, note: "P.Baal v10 (god 38) in a DNRC" } ] },
-    { key: "fRtiTab", group: "unlock", label: "RTI(∞) tab", fmt: "flag", sources: [ { score: "RTI", min: 1 } ] },
-    { key: "fSeed", group: "unlock", label: "Seed pet & Ultimate Stats Challenge", fmt: "flag", sources: [ { score: "RTI", min: 50, note: "P.Baal v50 in RTI" } ] },
-    { key: "fGpPet", group: "unlock", label: "God Power pet can evolve", fmt: "flag", sources: [ { ch: "GPC", at: 25 } ] },
-    { key: "fUbv2Auto", group: "unlock", label: "UBv2 auto-kill", fmt: "flag", sources: [ { ch: "UBV2C", at: 10 } ] },
-    { key: "fV4Instant", group: "unlock", label: "−1 min UBv4 fight per ITRTGv1 kill", fmt: "flag", sources: [ { ch: "LCv4C", at: 11 } ] },
-    { key: "fBhuRB", group: "unlock", label: "Black Hole upgrades +50% rebirth multi", fmt: "flag", sources: [ { ch: "PBC", at: 25 } ] },
-    { key: "fMonuOvercap", group: "unlock", label: "Monument overcapping", fmt: "flag", sources: [ { ch: "EMC", at: 25 } ] },
-    { key: "fSdCap", group: "unlock", label: "No SpaceDim level cap", fmt: "flag", sources: [ { ch: "SDC", at: "cap" } ] },
-    { key: "fDemonLord", group: "unlock", label: "Demon Lord + battle HP recovery", fmt: "flag", sources: [ { ch: "MQC", at: 20 } ] },
-    { key: "fNtcRegen", group: "unlock", label: "Battle regen in Mystic Regen+", fmt: "flag", sources: [ { ch: "NTC", at: 20 } ] },
-    { key: "fRooms", group: "unlock", label: "60 dungeon rooms", fmt: "flag", sources: [ { ch: "NRDC", at: 20 } ] },
-    { key: "fLcResets", group: "unlock", label: "50 light clone resets", fmt: "flag", sources: [ { ch: "LCC", at: 25 } ] },
-    { key: "fStones", group: "unlock", label: "Div Gen workers carry +50% stones", fmt: "flag", sources: [ { ch: "NDC", at: 25 } ] },
-    { key: "fCapMax", group: "unlock", label: "CAP MAX div for campaigns, Div Gen stays full", fmt: "flag", sources: [ { ch: "PWC", at: 20 } ] },
-    { key: "fSdgFree", group: "unlock", label: "Free Super Div Gen upgrades", fmt: "flag", sources: [ { ch: "DAC", at: 11 } ] },
-    { key: "fSdgCap", group: "unlock", label: "SDG capacity multiplies divinity", fmt: "flag", sources: [ { ch: "BCC", at: 11 } ] },
-    { key: "fUbDiv", group: "unlock", label: "UB divinity scales with Div Gen div/sec", fmt: "flag", sources: [ { ch: "DGC", at: 25 } ] },
-    { key: "fEtc", group: "unlock", label: "ETC skill stats doubled", fmt: "flag", sources: [ { ch: "ETC", at: 27 } ] },
-    { key: "fOfpCC", group: "unlock", label: "Creation Count overflow upgrade", fmt: "flag", sources: [ { ch: "UCC", at: 30 } ] },
-    { key: "fOfpMight", group: "unlock", label: "Might Speed overflow upgrade", fmt: "flag", sources: [ { ch: "UCC", at: 40 } ] },
-    { key: "fOfpStats", group: "unlock", label: "Stats Multi overflow upgrade", fmt: "flag", sources: [ { ch: "UCC", at: 50 } ] },
+    // ---------- Unlocks (yes / no). Each sits in the group it belongs to; the tab lists them after the numbers. ----------
+    { key: "fGpPetGet", group: "pets", label: "God Power pet", fmt: "flag", sources: [ { ch: "GPC", at: 1 } ] },
+    { key: "fCfV2", group: "planet", label: "Crystal Factory & UBv2 unlocked for good", fmt: "flag", sources: [ { ch: "UUC", at: 1 }, { ch: "UBC", at: 1 } ] },
+    { key: "fWolf", group: "pets", label: "Wolf pet unlock (25 UBC)", fmt: "flag", sources: [ { ch: "UBC", at: 25 } ] },
+    { key: "fTurtle", group: "pets", label: "Turtle pet", fmt: "flag", sources: [ { ch: "UAC", at: 1 } ] },
+    { key: "fTurtleEvo", group: "pets", label: "Turtle can evolve", fmt: "flag", sources: [ { ch: "UAC", at: 2 } ] },
+    { key: "fRunePatch", group: "pets", label: "Rune Patch blacksmith armor", fmt: "flag", sources: [ { ch: "USC", at: 1 } ] },
+    { key: "fRunePatchMax", group: "pets", label: "Rune Patch dungeon damage bonus", fmt: "flag", sources: [ { ch: "USC", at: 25 } ] },
+    { key: "fMvTab", group: "mv", label: "Multiverse tab", fmt: "flag", sources: [ { ch: "UMC", at: 1 } ] },
+    { key: "fMvBoost", group: "mv", label: "Multiverse Boost", fmt: "flag", sources: [ { score: "DMVC", min: 1 } ] },
+    { key: "fMvElements", group: "mv", label: "Multiverse Rebirth Multi, God Power & Pet Growth", fmt: "flag", sources: [ { ch: "UOC", at: 1 } ] },
+    { key: "fDivGenEarly", group: "div", label: "Divinity Generator without building all monuments", fmt: "flag", sources: [ { ch: "DAC", at: 1 } ] },
+    { key: "fBhPlus", group: "gp", label: "Black Hole+ might", fmt: "flag", sources: [ { ch: "1KBHC", at: 1 } ] },
+    { key: "fSdg", group: "div", label: "Super Divinity Generator", fmt: "flag", sources: [ { ch: "SDGC", at: 1 } ] },
+    { key: "fEtcTraining", group: "stats", label: "29th training and skill", fmt: "flag", sources: [ { ch: "ETC", at: 1 } ] },
+    { key: "fCamp24", group: "pets", label: "24-hour pet campaigns", fmt: "flag", sources: [ { score: "DNRC", min: 38, note: "P.Baal v10 (god 38) in a DNRC" } ] },
+    { key: "fRtiTab", group: "stats", label: "RTI(∞) tab", fmt: "flag", sources: [ { score: "RTI", min: 1 } ] },
+    { key: "fSeed", group: "pets", label: "Seed pet & Ultimate Stats Challenge", fmt: "flag", sources: [ { score: "RTI", min: 50, note: "P.Baal v50 in RTI" } ] },
+    { key: "fGpPet", group: "pets", label: "God Power pet can evolve", fmt: "flag", sources: [ { ch: "GPC", at: 25 } ] },
+    { key: "fUbv2Auto", group: "planet", label: "UBv2 auto-kill", fmt: "flag", sources: [ { ch: "UBV2C", at: 10 } ] },
+    { key: "fV4Instant", group: "planet", label: "−1 min UBv4 fight per ITRTGv1 kill", fmt: "flag", sources: [ { ch: "LCv4C", at: 11 } ] },
+    { key: "fBhuRB", group: "gp", label: "Black Hole upgrades +50% rebirth multi", fmt: "flag", sources: [ { ch: "PBC", at: 25 } ] },
+    { key: "fMonuOvercap", group: "monu", label: "Monument overcapping", fmt: "flag", sources: [ { ch: "EMC", at: 25 } ] },
+    { key: "fSdCap", group: "mv", label: "No SpaceDim level cap", fmt: "flag", sources: [ { ch: "SDC", at: "cap" } ] },
+    { key: "fDemonLord", group: "stats", label: "Demon Lord + battle HP recovery", fmt: "flag", sources: [ { ch: "MQC", at: 20 } ] },
+    { key: "fNtcRegen", group: "might", label: "Battle regen in Mystic Regen+", fmt: "flag", sources: [ { ch: "NTC", at: 20 } ] },
+    { key: "fRooms", group: "pets", label: "60 dungeon rooms", fmt: "flag", sources: [ { ch: "NRDC", at: 20 } ] },
+    { key: "fLcResets", oneTime: true, group: "clones", label: "50 light clone resets", fmt: "flag", sources: [ { ch: "LCC", at: 25 } ] },
+    { key: "fStones", group: "div", label: "Div Gen workers carry +50% stones", fmt: "flag", sources: [ { ch: "NDC", at: 25 } ] },
+    { key: "fCapMax", group: "div", label: "CAP MAX div for campaigns, Div Gen stays full", fmt: "flag", sources: [ { ch: "PWC", at: 20 } ] },
+    { key: "fSdgFree", group: "div", label: "Free Super Div Gen upgrades", fmt: "flag", sources: [ { ch: "DAC", at: 11 } ] },
+    { key: "fSdgCap", group: "div", label: "SDG capacity multiplies divinity", fmt: "flag", sources: [ { ch: "BCC", at: 11 } ] },
+    { key: "fUbDiv", group: "div", label: "UB divinity scales with Div Gen div/sec", fmt: "flag", sources: [ { ch: "DGC", at: 25 } ] },
+    { key: "fEtc", group: "stats", label: "ETC skill stats doubled", fmt: "flag", sources: [ { ch: "ETC", at: 27 } ] },
+    { key: "fOfpCC", group: "mv", label: "Creation Count overflow upgrade", fmt: "flag", sources: [ { ch: "UCC", at: 30 } ] },
+    { key: "fOfpMight", group: "mv", label: "Might Speed overflow upgrade", fmt: "flag", sources: [ { ch: "UCC", at: 40 } ] },
+    { key: "fOfpStats", group: "mv", label: "Stats Multi overflow upgrade", fmt: "flag", sources: [ { ch: "UCC", at: 50 } ] },
   ];
 
   // ---------------------------------------------------------------------
@@ -309,15 +310,16 @@
       if ((s.ch || s.score) !== code) continue;
       out.push({ effect: e, line: lineFor(e, s, imp, byCode) });
     }
-    // UCC: its main reward (bonus completions) goes first
-    out.sort((a, b) => (b.effect.group === "ucc") - (a.effect.group === "ucc"));
+    // UCC's main reward (bonus completions) first; one-time gifts last
+    const rank = x => x.effect.group === "ucc" ? 0 : x.effect.oneTime ? 2 : 1;
+    out.sort((a, b) => rank(a) - rank(b));
     const t = challengeText[code] || (c && challengeText[c.type]) || null;
     return { items: out, text: t ? t.text : [], short: t ? t.short : null };
   }
   // short text for compact places: the first few effect names
   function rewardSummary(code, byCode, n = 3) {
     const r = challengeRewards(code, null, byCode);
-    const names = r.items.filter(x => x.effect.group !== "ucc").map(x => x.effect.label);
+    const names = r.items.filter(x => x.effect.group !== "ucc" && !x.effect.oneTime).map(x => x.effect.label);
     if (r.items.some(x => x.effect.group === "ucc")) names.unshift("Bonus completions for other challenges");
     if (!names.length) return r.short || "";
     return names.slice(0, n).join(" · ") + (names.length > n ? ` · +${names.length - n} more` : "");

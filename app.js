@@ -815,7 +815,7 @@
       } else if (l.max != null) val = (e.base != null ? "down to " : "up to ") + rval(e, l.max);
       else val = l.each ? rval(e, l.each) + " each" : "grows with score";
       const sub = [e.unit, l.note].filter(Boolean).join(" · ");
-      return `<li class="${imp && !l.v ? "no" : ""}"><span>${esc(e.label)}${sub ? `<small>${esc(sub)}</small>` : ""}</span><b>${esc(val)}</b></li>`;
+      return `<li class="${imp && !l.v ? "no" : ""}"><span>${esc(e.label)}${e.oneTime ? ' <span class="muted">(one-time)</span>' : ""}${sub ? `<small>${esc(sub)}</small>` : ""}</span><b>${esc(val)}</b></li>`;
     }).join("");
     return `<section><h3>Rewards${imp ? " · yours" : ""}</h3>${rows ? `<ul class="rwl">${rows}</ul>` : ""}${r.text.map(t => `<p style="margin:8px 0 0">${esc(t)}</p>`).join("")}
       <p class="muted" style="font-size:12px;margin:8px 0 0">From the wiki's Reward section. Totals across all challenges are on the Rewards tab.</p></section>`;
@@ -1053,14 +1053,15 @@
         <button type="button" class="btn primary" id="rw-import">Import stats</button></div></div>`;
       return;
     }
-    rwEval = RWD.evaluate(imp, BY);
+    rwEval = RWD.evaluate(imp, BY).filter(e => !e.oneTime);   // one-time gifts are listed in the details panel only
     const nAct = rwEval.filter(e => e.active).length;
     const srcs = new Set(); rwEval.forEach(e => e.active && e.lines.forEach(l => l.v && srcs.add(l.code)));
     let h = `<div class="rw-inner"><div class="rw-head"><div><h2>Active rewards</h2>
       <p class="muted">${nAct} rewards from ${srcs.size} challenges. Hover or tap a card for the breakdown, and click a challenge in it for details.</p></div>
       <label class="rw-all"><input type="checkbox" id="rw-all"${rwShowAll ? " checked" : ""}> Show rewards you don't have yet</label></div>`;
     for (const g of RWD.groups) {
-      const list = rwEval.filter(e => e.group === g.key && (rwShowAll || e.active));
+      // numbers first, then the yes/no unlocks for that group
+      const list = rwEval.filter(e => e.group === g.key && (rwShowAll || e.active)).sort((a, b) => (a.fmt === "flag") - (b.fmt === "flag"));
       if (!list.length) continue;
       h += `<section class="rw-group"><h3>${esc(g.label)}</h3><div class="rw-grid">`;
       for (const e of list) {
