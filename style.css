@@ -342,7 +342,7 @@ body[data-view="rewards"] .pane, body[data-view="rewards"] .zoom, body[data-view
 .rw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
 .rw-card { display: grid; grid-template-columns: minmax(0, 1fr); text-align: left; padding: 11px 13px 10px; min-width: 0;
   background: var(--surface); border: 1px solid var(--line); border-radius: 10px; color: var(--fg);
-  transition: opacity .15s, filter .15s, border-color .15s, background .15s; }
+  transition: opacity .15s, border-color .15s, background .15s; }
 .rw-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .rw-card.hit { box-shadow: 0 0 0 2px var(--accent); }
 .rw-card.off { opacity: .5; }
@@ -353,7 +353,10 @@ body[data-view="rewards"] .pane, body[data-view="rewards"] .zoom, body[data-view
 .rw-card.flip .rw-front { visibility: hidden; }
 .rw-card.flip .rw-back { visibility: visible; }
 .rw-card.flip { background: var(--surface-2); border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 8px 24px rgba(0,0,0,.35); opacity: 1; }
-.rewards.spot .rw-card:not(.flip) { opacity: .62; filter: saturate(.7); }
+.rewards.spot .rw-card:not(.flip) { opacity: .6; }
+/* Firefox-based browsers sometimes leave unpainted patches when ~100 cards fade while the page scrolls,
+   so the fade is opacity only (no filter) and switches off instantly while dragging */
+.viewport.dragging .rw-card { transition: none; }
 .rewards.spot .rw-card.off:not(.flip) { opacity: .35; }
 .rw-bh { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
 .rw-bh b { font-family: var(--font-mono); color: var(--accent); white-space: nowrap; }
