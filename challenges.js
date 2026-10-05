@@ -20,6 +20,8 @@
 //                  {to?, label?, need:[conditions like check]}; the first entry whose "to" covers the next
 //                  completion applies (day challenges: RTI uses the score target, others 1 = first run).
 //                  Used by the Recommended tab to move a row up or down one timing group.
+//    recLater    : true = the Recommended tab always puts it in Later (community consensus that almost
+//                  anything else is a better use of time; UAC)
 //    scoreCap    : day challenges only - the best score where ChP stops increasing {value, label, short, chp}
 //    export      : the name used in the in-game statistics export
 //    tools       : [[label, url], ...]  guides / calculators
@@ -3257,6 +3259,7 @@ window.ITRTG = {
      "n": 2
     }
    ],
+   "recLater": true,
    "export": "Ultimate Arty Challenges",
    "tools": [],
    "wikiInfo": {

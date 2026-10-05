@@ -459,6 +459,7 @@
       it.moved = 0;
       if (it.hc && it.hc.verdict === "short" && it.tier < 2) { it.tier++; it.moved = 1; }
       else if (it.hc && it.hc.verdict === "ready" && it.tier > 0) { it.tier--; it.moved = -1; }
+      if (it.c.recLater) { it.tier = 2; it.moved = 0; }   // e.g. UAC: almost anything else is a better use of time
     });
     items.sort((a, b) => a.tier - b.tier || (b.c.rewardRating || 0) - (a.c.rewardRating || 0) || a.nx.k - b.nx.k || CH.indexOf(a.c) - CH.indexOf(b.c));
     const chpTxt = imp.stats.chp != null ? fmt(imp.stats.chp) + " ChP" : "your ChP";
@@ -468,7 +469,7 @@
     const TIERS = [
       ["Do now", "The guide puts these at your ChP or earlier"],
       ["Coming up", nxt ? `Guide says ${nxt}, or moved by the wiki's recommended stats` : "Moved down by the wiki's recommended stats"],
-      ["Later", "Two or more ChP bands ahead, or moved down by the wiki's recommended stats"],
+      ["Later", "The guide puts these two or more ChP bands above yours (or the wiki's stats moved them down)"],
     ];
     const mini = new Set(), later = new Set();
     let lastT = -1;
