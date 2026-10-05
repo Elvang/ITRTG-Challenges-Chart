@@ -334,6 +334,9 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 .act i.lit { background: var(--fg); opacity: 1; }
 .act i:nth-child(1) { height: 5px; } .act i:nth-child(2) { height: 8px; } .act i:nth-child(3) { height: 11px; } .act i:nth-child(4) { height: 14px; }
 .legend .act { vertical-align: middle; margin-right: 2px; }
+.box.tight .hd { gap: 4px; padding: 5px 6px; }
+.box.tight .hd .st { font-size: 10px; padding: 3px 5px; }
+.box.tight .hd .hstars { letter-spacing: 0; font-size: 11px; }
 .box .hd .st.maybe { background: transparent; border: 1px dashed rgba(255,255,255,.75); padding: 2px 6px; }
 /* keep the zoom buttons clear of the open details panel */
 .viewport.drawer-open .zoom { right: calc(min(430px, 100%) + 16px); transition: right .3s; }

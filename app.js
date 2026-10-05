@@ -109,6 +109,7 @@
   let relayT = null, lastSig = "";
   function sizeSig() { return CH.map(c => heights[c.code] + "/" + hC[c.code]).join(","); }
   function relayoutAll() {
+    if (imp) fitChips();   // web fonts can change the widths
     measure();
     const sig = sizeSig();
     if (sig === lastSig) return;
@@ -1127,6 +1128,21 @@
       default: return null;
     }
   }
+  // A long chip (e.g. DNDC's "6.89e7 / 4.44e9") next to 4-5 stars can be wider than the box header.
+  // Tighten just those headers: smaller chip and stars first, then drop the spaces around "/".
+  function fitChips() {
+    for (const c of CH) {
+      const el = boxes[c.code], hd = el.querySelector(".hd"), chip = el.querySelector(".st");
+      el.classList.remove("tight");
+      if (chip.dataset.full) { chip.textContent = chip.dataset.full; delete chip.dataset.full; }
+      if (chip.hidden || hd.scrollWidth <= hd.clientWidth) continue;
+      el.classList.add("tight");
+      if (hd.scrollWidth > hd.clientWidth && chip.textContent.includes(" / ")) {
+        chip.dataset.full = chip.textContent;
+        chip.textContent = chip.textContent.replace(" / ", "/");
+      }
+    }
+  }
   function applyImport(r, autoCollapse) {
     imp = r;
     for (const c of CH) {
@@ -1139,6 +1155,7 @@
       el.classList.toggle("is-locked", s.s === "locked");
       el.classList.toggle("is-maybe", s.s === "maybe");
     }
+    fitChips();
     const bi = currentBandIdx();
     $("#player").hidden = false;
     $("#player-text").innerHTML = `<b>${esc(r.player || "Imported")}</b> · ${fmt(r.stats.chp)} ChP${bi != null ? " · " + esc(D.bands[bi].label) : ""}`;
@@ -1191,7 +1208,7 @@
   }
   function clearImport() {
     imp = null; store.set("itrtg.export", null);
-    for (const c of CH) { boxes[c.code].querySelector(".st").hidden = true; boxes[c.code].classList.remove("is-done", "is-locked", "is-maybe"); }
+    for (const c of CH) { boxes[c.code].querySelector(".st").hidden = true; boxes[c.code].classList.remove("is-done", "is-locked", "is-maybe", "tight"); }
     $("#player").hidden = true;
     decorateRoad(); decorateTree();
     layoutRec();
