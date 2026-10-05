@@ -322,29 +322,38 @@
     if (/^(all|rest|finish|last \d+|the rest)|round 2/i.test(txt)) return cap;
     return null;
   }
+  // The guide step a row should aim for. Steps the export shows as done are skipped. Of the remaining ones,
+  // take the furthest step the guide puts at the player's ChP or earlier (someone at 31k ChP with an old
+  // v102 RTI should aim for the v140 stage, not v120); if every remaining step is ahead, take the first.
   function recNext(c, st) {
     const steps = Object.keys(c.stages).map(Number).sort((a, b) => a - b);
     if (!steps.length) return null;
     const isDay = c.type === "D";
     const done = isDay ? (st.v > 0 ? 1 : 0) : (st.v || 0);
     const cap = st.cap || parseInt(c.max, 10) || Infinity;
+    const open = [];
     let prev = 0;
     for (let i = 0; i < steps.length; i++) {
       const k = steps[i], txt = c.stages[k], last = i === steps.length - 1;
       if (isDay) {
         if (/^every|^only redo/i.test(txt)) continue;                       // recurring re-runs: can't tell from the export
         const v = txt.match(/v\s?(\d+)/i);
-        if (v) { if ((st.v || 0) >= +v[1]) continue; return { k, txt, target: "score v" + v[1] }; }
+        if (v) { if ((st.v || 0) < +v[1]) open.push({ k, txt, target: "score v" + v[1] }); continue; }
         if (st.v > 0 && (!last || /1st|first|unlock/i.test(txt))) continue;
-        return { k, txt };
+        open.push({ k, txt });
+        continue;
       }
       if (/not worth/i.test(txt) && !last) continue;
       const tgt = stageTarget(txt, prev, cap, parseInt(c.max, 10));
-      if (tgt != null) { if (done >= tgt) { prev = tgt; continue; } return { k, txt, target: tgt }; }
+      if (tgt != null) { if (done < tgt) open.push({ k, txt, target: tgt }); prev = Math.max(prev, tgt); continue; }
       if (done > 0 && !last) continue;
-      return { k, txt };
+      open.push({ k, txt });
     }
-    return null;
+    if (!open.length) return null;
+    const now = currentBandIdx();
+    if (now == null) return open[0];
+    const inBand = open.filter(o => D.bands.indexOf(bandOfStep(o.k)) <= now);
+    return inBand.length ? inBand[inBand.length - 1] : open[0];
   }
   // statHint: the wiki's recommended stats the export can check (see challenges.js).
   // Picks the hint for the next completion and returns { hint, rows: [{k, ok, have}], verdict: "ready" | "short" | null }.
