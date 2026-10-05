@@ -50,7 +50,7 @@
   const hOf = code => view === "rec" && layouts.rec && layouts.rec.mini.has(code) ? miniH(code) : (view === "road" ? heights : hC)[code];
   const miniH = code => boxes[code].querySelector(".hd").offsetHeight + 2;   // header only (+ border)
 
-  const world = $("#world"), vp = $("#viewport");
+  const world = $("#world"), vp = $("#viewport"), sticky = $("#road-sticky"), stickyGroup = $("#road-sticky-group");
   const L = { road: $("#layer-road"), tree: $("#layer-tree"), rec: $("#layer-rec"), boxes: $("#layer-boxes") };
 
   // =====================================================================
@@ -141,8 +141,9 @@
     const groups = GROUP_ORDER.map(t => [t, CH.filter(c => c.type === t && firstStep(c) != null)]);
     const unplaced = CH.filter(c => firstStep(c) == null);
     if (unplaced.length) groups.push(["NEW", unplaced]);
-    const rows = [];
+    const rows = [], groupY = [];
     for (const [t, list] of groups) {
+      groupY.push({ t, y });
       const tt = T[t] || { label: "New - not in the guide yet", color: "#5b5670", blurb: "Placed here until the guide covers it" };
       const isCol = collapsed.has(t);
       const extra = `<span class="extras">${t === "HM" ? `<span class="extra hm-points" hidden></span>` : ""}<span class="extra maxed" hidden></span></span>`;
@@ -201,7 +202,11 @@
     const bg = D.bands.map((b, i) => `<div class="band ${i % 2 ? "b" : "a"}" style="left:${colx(b.steps[0])}px;top:${hdrY - 8}px;width:${COLW * b.steps.length}px;height:${H - hdrY}px"></div>`).join("");
     L.road.innerHTML = bg + frag.join("");
     L.road.querySelectorAll(".station").forEach(s => s.style.height = "auto");
-    layouts.road = { pos, w: RX0 + W + 40, h: H, hidden };
+    layouts.road = { pos, w: RX0 + W + 40, h: H, hidden, hdrY, groupY, barX: RX0, barW: W };
+    pinnedSrc = null;   // the old bars are gone
+    // sticky copy of the ChP header, shown over the map once the real one scrolls off the top
+    sticky.innerHTML = D.bands.map((b, i) => `<div class="${i % 2 ? "b" : "a"}" data-band="${i}" data-x="${colx(b.steps[0])}" data-w="${COLW * b.steps.length}">${esc(b.label)}</div>`).join("");
+    updateSticky(false);
     layouts.rewards = layouts.road;   // the map stays on the Roadmap underneath the Rewards page
     decorateRoad();
   }
@@ -541,6 +546,11 @@
     applySelection();
     return true;
   }
+  // after collapsing/expanding from the pinned copy, put that category's bar right under the ChP header
+  function alignGroup(t) {
+    const g = layouts.road.groupY.find(x => x.t === t);
+    if (g) setCam({ x: cam.x, y: STICKY_H - g.y * cam.k, k: cam.k });
+  }
   function expandFor(code) {
     const g = groupOf(BY[code]);
     return collapsed.has(g) ? toggleGroup(g, true) : false;
@@ -563,7 +573,70 @@
     cam = clampCam(c);
     world.classList.toggle("cam-anim", !!animate);
     world.style.transform = `translate(${cam.x}px, ${cam.y}px) scale(${cam.k})`;
-    if (animate) setTimeout(() => world.classList.remove("cam-anim"), 750);
+    if (animate) setTimeout(() => { world.classList.remove("cam-anim"); sticky.classList.remove("cam-anim"); }, 750);
+    updateSticky(animate);
+  }
+  // Roadmap: keep the ChP band labels pinned to the top while the header row is scrolled off.
+  // The copy lives outside the zoomed world, so its text stays readable at any zoom.
+  // Below it, a copy of the category bar the view is currently inside, which still collapses on click.
+  // When a new bar pins it starts at the real bar's on-screen size and grows to full size, and its label
+  // and counter slide in from the edges so they stay on screen while the bar is wider than the view.
+  const STICKY_H = 34, GROW_MS = 180;
+  let stickyGroupKey = null, pinnedSrc = null, growFrom = 1, growT0 = 0, growRaf = 0;
+  function updateSticky(animate) {
+    const lay = layouts.road;
+    const on = view === "road" && lay && cam.y + lay.hdrY * cam.k < 0;
+    sticky.hidden = !on;
+    const hideGroup = () => { stickyGroup.hidden = true; stickyGroupKey = null; if (pinnedSrc) { pinnedSrc.classList.remove("pinned-src"); pinnedSrc = null; } };
+    if (!on) { hideGroup(); return; }
+    sticky.classList.toggle("cam-anim", !!animate);
+    for (const el of sticky.children) {
+      el.style.left = (cam.x + el.dataset.x * cam.k) + "px";
+      el.style.width = (el.dataset.w * cam.k) + "px";
+    }
+    // the category whose bar has scrolled up under the ChP header
+    const sy = g => cam.y + g.y * cam.k;
+    let i = -1;
+    lay.groupY.forEach((g, j) => { if (sy(g) <= STICKY_H) i = j; });
+    if (i < 0 || animate) { hideGroup(); return; }
+    const g = lay.groupY[i], next = lay.groupY[i + 1];
+    const src = L.road.querySelector(`.group-bar[data-group="${g.t}"]`);
+    if (!src) { hideGroup(); return; }
+    // the real bar hides while its copy is pinned, so no edge of it shows around the copy
+    if (pinnedSrc !== src) { if (pinnedSrc) pinnedSrc.classList.remove("pinned-src"); src.classList.add("pinned-src"); pinnedSrc = src; }
+    const sig = src.outerHTML.length + src.className;
+    if (stickyGroupKey !== g.t) {
+      growFrom = Math.min(2, Math.max(0.4, cam.k)); growT0 = performance.now();   // start at the real bar's size
+      cancelAnimationFrame(growRaf);
+      const tick = () => { placeStickyGroup(); if (performance.now() - growT0 < GROW_MS) growRaf = requestAnimationFrame(tick); };
+      growRaf = requestAnimationFrame(tick);
+    }
+    if (stickyGroupKey !== g.t || stickyGroup.dataset.sig !== sig) {
+      stickyGroup.innerHTML = src.outerHTML;   // copy, so the maxed count and collapsed state match
+      stickyGroup.firstElementChild.classList.remove("pinned-src");
+      stickyGroup.dataset.sig = sig;
+      stickyGroupKey = g.t;
+    }
+    stickyGroup.hidden = false;
+    stickyGroup.dataset.push = next ? Math.min(0, sy(next) - 2 * STICKY_H) : 0;   // the next bar pushes this one up
+    placeStickyGroup();
+  }
+  function placeStickyGroup() {
+    const bar = stickyGroup.firstElementChild, lay = layouts.road;
+    if (!bar || stickyGroup.hidden) return;
+    const t = Math.min(1, (performance.now() - growT0) / GROW_MS), e = 1 - Math.pow(1 - t, 3);
+    const sc = growFrom + (1 - growFrom) * e;                  // current scale, eases to 1
+    const L0 = cam.x + lay.barX * cam.k, W0 = lay.barW * cam.k, vw = vp.clientWidth;
+    // keep the label and the counter on screen, as long as the bar leaves room for them
+    const room = Math.max(0, W0 - 320);
+    let padL = Math.max(14, 14 - L0), padR = Math.max(14, L0 + W0 - vw + 14);
+    if (padL + padR > room + 28) { const f = (room + 28) / (padL + padR); padL *= f; padR *= f; }
+    bar.style.left = L0 + "px";
+    bar.style.top = stickyGroup.dataset.push + "px";
+    bar.style.width = (W0 / sc) + "px";
+    bar.style.transform = `scale(${sc})`;
+    bar.style.paddingLeft = (Math.max(14, padL) / sc) + "px";
+    bar.style.paddingRight = (Math.max(14, padR) / sc) + "px";
   }
   const clampK = k => Math.min(2.5, Math.max(0.12, k));
   function fitWidth(animate) {
@@ -666,7 +739,7 @@
     if (moved) { moved = false; return; }
     if (e.target.closest(".rec-later-bar")) { toggleRecLater(); return; }
     const gb = e.target.closest(".group-bar.toggle");
-    if (gb) { toggleGroup(gb.dataset.group); return; }
+    if (gb) { const pinned = !!gb.closest("#road-sticky-group"); toggleGroup(gb.dataset.group); if (pinned) alignGroup(gb.dataset.group); return; }
     if (e.target.closest("#rec-import")) { openModal(); return; }
     const b = e.target.closest(".box, .station, .track, .pill, .rec-row");
     if (!b) return;
@@ -687,7 +760,7 @@
   vp.addEventListener("keydown", e => {
     if (e.target.closest(".rec-later-bar") && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleRecLater(); return; }
     const gb = e.target.closest(".group-bar.toggle");
-    if (gb && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleGroup(gb.dataset.group); return; }
+    if (gb && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); const pinned = !!gb.closest("#road-sticky-group"); toggleGroup(gb.dataset.group); if (pinned) alignGroup(gb.dataset.group); return; }
     const b = e.target.closest(".box");
     if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); b.dataset.code === selCode ? deselect() : select(b.dataset.code, false); }
   });
@@ -1082,6 +1155,7 @@
     L.road.querySelectorAll("[data-code]").forEach(el => el.classList.toggle("is-done", st[el.dataset.code] === "done"));
     const bi = currentBandIdx();
     L.road.querySelectorAll(".band-h").forEach(h => h.classList.toggle("here", +h.dataset.band === bi));
+    [...sticky.children].forEach(h => h.classList.toggle("here", +h.dataset.band === bi));
     L.road.querySelectorAll(".here-flag").forEach(x => x.remove());
     if (bi != null) {
       const h = L.road.querySelector(`.band-h[data-band="${bi}"]`);
