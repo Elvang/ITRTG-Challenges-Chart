@@ -8,7 +8,7 @@ An interactive chart of the recommended challenge order for *Idling to Rule the 
 - **Rewards**: after you import your stats, adds up the rewards from every challenge you've done, grouped by what they boost (planet level, might, pets, crystals…). Hover or tap a card to see which challenges it comes from and how far each is from its max.
 - **Search**: type a code or a name (`UBC`, `pet`, `crystal`). The tree view highlights the whole unlock path.
 - **Details**: click any box for the unlock requirements, reward, guide timing, wiki excerpts, and links to calculators.
-- **Import stats**: the game copies its statistics export to the clipboard. Click **Import stats** to paste it (or use Paste from clipboard, or drop a saved .txt), or use the ▾ next to it to import straight from the clipboard or a file. Maxed challenges fade out, and each box shows your count, your best score, or whether you can start it yet. The export is saved only in your own browser.
+- **Import stats**: the game copies its statistics export to the clipboard. Click **Import stats** to paste it (or use Paste from clipboard, or drop a saved .txt), or use the ▾ next to it to import straight from the clipboard or a file. Maxed challenges fade out, and each box shows your count, your best score, or whether it's unlocked yet. The export is saved only in your own browser.
 
 ## Files
 

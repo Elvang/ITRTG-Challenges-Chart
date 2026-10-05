@@ -975,7 +975,7 @@
   function summarize() {
     const n = { done: 0, progress: 0, ready: 0, locked: 0 };
     for (const c of CH) { const s = P.statusOf(c, imp).s; if (s in n) n[s]++; }
-    return `${n.done} maxed, ${n.progress} in progress, ${n.ready} ready to start, ${n.locked} locked.`;
+    return `${n.done} maxed, ${n.progress} in progress, ${n.ready} unlocked but not started, ${n.locked} locked.`;
   }
   function chipText(s) {
     switch (s.s) {
@@ -983,7 +983,7 @@
       case "progress": return [s.v + "/" + s.cap, ""];
       case "count": return ["×" + s.v, ""];
       case "score": return [s.cap != null ? fmtPair(s.v, s.cap).join(" / ") : "best " + fmt(s.v), ""];
-      case "ready": return ["Ready", "ready"];
+      case "ready": return ["Unlocked", "ready"];
       case "locked": return ["Locked", "locked"];
       case "maybe": return ["? check", "maybe"];
       default: return null;
@@ -995,7 +995,7 @@
       const s = P.statusOf(c, imp);
       const el = boxes[c.code], chip = el.querySelector(".st");
       const ct = chipText(s);
-      if (ct) { chip.hidden = false; chip.textContent = ct[0]; chip.className = "st " + ct[1]; chip.title = s.s === "maybe" ? "Everything the export shows is met. Still check: " + (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText).join("; ") : s.s === "locked" ? "Not met: " + (c.check || []).filter(k => P.evalCond(k, imp) === false).map(condText).join("; ") : ""; }
+      if (ct) { chip.hidden = false; chip.textContent = ct[0]; chip.className = "st " + ct[1]; chip.title = s.s === "maybe" ? "Everything the export shows is met. Still check: " + (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText).join("; ") : s.s === "locked" ? "Not met: " + (c.check || []).filter(k => P.evalCond(k, imp) === false).map(condText).join("; ") : s.s === "ready" ? "Unlocked, not started yet. The Recommended tab shows whether the guide suggests it at your ChP." : ""; }
       else chip.hidden = true;
       el.classList.toggle("is-done", s.s === "done");
       el.classList.toggle("is-locked", s.s === "locked");
