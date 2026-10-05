@@ -322,6 +322,7 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 .rec-row.later:hover, .box.rec-later:hover { opacity: 1; }
 .box.rec-mini .bd { display: none; }
 .measuring .box.rec-mini .bd { display: grid; }
+.measuring .box { min-height: 0 !important; }   /* measure natural heights, not Recommended's stretched ones */
 .rec-row.mini { padding: 0 12px; grid-template-columns: 1fr auto; align-items: center; align-content: center; gap: 10px; }
 .rec-row.mini .what { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rec-row.mini .what .nm { font-weight: 600; }

@@ -433,7 +433,7 @@
         <p>Only challenges the import can confirm are unlocked are listed. Import again after you finish a batch to refresh it.</p>
         <button type="button" class="btn primary" id="rec-import">Import stats</button></div>`);
       L.rec.innerHTML = frag.join("");
-      layouts.rec = { pos, w: W, h: 400, mini: new Set(), later: new Set() };
+      layouts.rec = { pos, w: W, h: 400, mini: new Set(), later: new Set(), stretch: {} };
       return;
     }
     const bandNow = currentBandIdx();
@@ -521,16 +521,22 @@
     }
     L.rec.innerHTML = frag.join("");
     // second pass: stack everything using the real rendered heights
+    // (desktop: a box shorter than its row is stretched to the row's height, so each pair lines up)
     let yy = 30;
+    const stretch = {};
     for (const el of L.rec.children) {
       if (el.classList.contains("rec-row")) {
         const code = el.dataset.code, h = mini.has(code) ? miniH(code) : hC[code];
         pos[code].y = yy;
         if (narrow) { el.style.top = (yy + h + 6) + "px"; yy += h + 6 + el.offsetHeight + 18; }
-        else { el.style.top = yy + "px"; yy += Math.max(h, el.offsetHeight) + (mini.has(code) ? 8 : 12); }
+        else {
+          el.style.top = yy + "px";
+          if (!mini.has(code) && el.offsetHeight > h) stretch[code] = el.offsetHeight;
+          yy += Math.max(h, el.offsetHeight) + (mini.has(code) ? 8 : 12);
+        }
       } else { el.style.top = yy + "px"; yy += el.offsetHeight + (el.classList.contains("rec-h") ? 12 : 22); }
     }
-    layouts.rec = { pos, w: W, h: yy + 40, mini, later };
+    layouts.rec = { pos, w: W, h: yy + 40, mini, later, stretch };
   }
 
   // =====================================================================
@@ -544,6 +550,7 @@
       if (p) boxes[c.code].style.transform = `translate(${p.x}px, ${p.y}px)`;
       boxes[c.code].classList.toggle("rec-mini", view === "rec" && lay.mini.has(c.code));
       boxes[c.code].classList.toggle("rec-later", view === "rec" && lay.later.has(c.code));
+      boxes[c.code].style.minHeight = view === "rec" && lay.stretch[c.code] ? lay.stretch[c.code] + "px" : "";
       boxes[c.code].classList.toggle("collapsed", !p || (view === "road" && lay.hidden && lay.hidden.has(c.code)));
     }
     world.style.width = lay.w + "px"; world.style.height = lay.h + "px";
