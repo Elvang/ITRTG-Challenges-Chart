@@ -37,6 +37,8 @@
   // two numbers that get compared side by side use the same notation
   const fmtPair = (a, b) => { const s = Math.max(Math.abs(a || 0), Math.abs(b || 0)) >= 1e6; return [fmt(a, s), fmt(b, s)]; };
 
+  // Page version, read from app.js's own ?v= in index.html (the one place it's set). Shown bottom-left.
+  const PAGE_VERSION = (() => { try { return new URL(document.currentScript.src).searchParams.get("v") || "dev"; } catch (e) { return "dev"; } })();
   // ---------- state ----------
   let view = ["tree", "rec", "rewards"].includes(store.get("itrtg.view")) ? store.get("itrtg.view") : "road";
   let imp = null;                // parsed import
@@ -1395,8 +1397,8 @@
       <li>Calculators: <a href="${s.compiled.url}" target="_blank" rel="noopener">${esc(s.compiled.label)}</a></li>
       <li>Unlocks &amp; excerpts: <a href="${s.wiki.url}" target="_blank" rel="noopener">${esc(s.wiki.label)}</a> by ITRTG Wiki contributors, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. Excerpts are shortened.</li>
       <li><a href="${s.helper.url}" target="_blank" rel="noopener">${esc(s.helper.label)}</a></li>
-      <li class="muted">Data checked ${esc(D.updated)}</li>`;
-    $("#credit").innerHTML = `Order from the <a href="${s.guide.url}" target="_blank" rel="noopener">Challenge Guide</a> by ${esc(s.guide.by)} · data from the <a href="${s.wiki.url}" target="_blank" rel="noopener">ITRTG wiki</a>`;
+      <li class="muted">Data updated ${esc(D.updated)} · page v${esc(PAGE_VERSION)}</li>`;
+    $("#credit").innerHTML = `<span class="cr-src">Order from the <a href="${s.guide.url}" target="_blank" rel="noopener">Challenge Guide</a> by ${esc(s.guide.by)} · data from the <a href="${s.wiki.url}" target="_blank" rel="noopener">ITRTG wiki</a><br></span><span class="cr-ver" title="Data updated: when the challenge data was last checked against the wiki and the guide. Page version: changes with every update to the site; if it's older than expected, reload the page.">Data updated ${esc(D.updated)} · page v${esc(PAGE_VERSION)}</span>`;
   }
   const legend = $("#legend");
   $("#btn-legend").addEventListener("click", () => { legend.hidden = !legend.hidden; store.set("itrtg.legend", legend.hidden ? "0" : "1"); });
