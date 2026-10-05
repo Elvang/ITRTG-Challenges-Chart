@@ -292,8 +292,16 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 .rec-row .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12.5px; color: var(--fg-dim); }
 .rec-row .meta b { color: var(--fg); font-variant-numeric: tabular-nums; }
 .rec-row .tag { font: 600 11px/1 var(--font-body); padding: 4px 7px; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
-.rec-row .tag.ahead { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--fg); }
 .rec-row .rw { font-size: 12.5px; color: var(--fg-dim); }
+.group-bar.rec-h small { margin-left: 4px; }
+/* Later group: dimmed; collapsed rows show only the box header and a one-line row */
+.rec-row.later, .box.rec-later { opacity: .55; }
+.rec-row.later:hover, .box.rec-later:hover { opacity: 1; }
+.box.rec-mini .bd { display: none; }
+.measuring .box.rec-mini .bd { display: grid; }
+.rec-row.mini { padding: 0 12px; grid-template-columns: 1fr auto; align-items: center; align-content: center; gap: 10px; }
+.rec-row.mini .what { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rec-row.mini .what .nm { font-weight: 600; }
 @media (max-width: 720px) { .seg button { padding: 6px 10px; } }
 
 .pill.path, .pill.hit { opacity: 1 !important; filter: none !important; box-shadow: 0 0 0 2px var(--accent); }

@@ -47,7 +47,8 @@
   const boxes = {};              // code -> element
   const heights = {};            // code -> px, full box (Roadmap)
   const hC = {};                 // code -> px, compact box (no "when" line; Tree + Recommended)
-  const hOf = code => (view === "road" ? heights : hC)[code];
+  const hOf = code => view === "rec" && layouts.rec && layouts.rec.mini.has(code) ? miniH(code) : (view === "road" ? heights : hC)[code];
+  const miniH = code => boxes[code].querySelector(".hd").offsetHeight + 2;   // header only (+ border)
 
   const world = $("#world"), vp = $("#viewport");
   const L = { road: $("#layer-road"), tree: $("#layer-tree"), rec: $("#layer-rec"), boxes: $("#layer-boxes") };
@@ -93,12 +94,14 @@
   let measuring = false;
   function measure() {
     measuring = true;
+    L.boxes.classList.add("measuring");          // Recommended's header-only boxes measure at full size
     const had = L.boxes.classList.contains("compact");
     L.boxes.classList.remove("compact");
     for (const c of CH) heights[c.code] = boxes[c.code].offsetHeight;
     L.boxes.classList.add("compact");
     for (const c of CH) hC[c.code] = boxes[c.code].offsetHeight;
     L.boxes.classList.toggle("compact", had);
+    L.boxes.classList.remove("measuring");
     measuring = false;
   }
   // Box sizes can change after the first layout (web fonts finishing, a status chip wrapping...).
@@ -299,12 +302,14 @@
   // =====================================================================
   //  Recommended list (needs an import)
   //  Only challenges the import shows as unlocked; one row each with the guide's next instruction.
-  //  Sorted by the guide's reward rating, then by the guide's stage.
+  //  Grouped by the guide's timing for the player's ChP (now / next band / later), then sorted by
+  //  reward rating and guide stage. The Later group is dimmed and shows header-only boxes until expanded.
   //  Unlimited, Hard Mode and Root rows are hidden unless the toggle is on: the export can't tell whether
   //  another run is worth it. A row still shows when the guide gives it a number to reach (UCC's first 20).
   // =====================================================================
   let recShowRepeat = store.get("itrtg.recRepeat") === "1";
   const REPEAT_TYPES = new Set(["U", "HM", "R"]);
+  let recLaterOpen = store.get("itrtg.recLater") === "1";
   // How many completions a guide instruction asks for (null = no number in it)
   function stageTarget(txt, prev, cap, baseMax) {
     let m;
@@ -353,11 +358,11 @@
     if (!imp) {
       frag.push(`<div class="rec-empty" style="left:${X0}px;top:${y}px;width:${FW}px">
         <h2>What can I do next?</h2>
-        <p>Import your statistics export and this tab lists every challenge you can start or continue right now, with what the guide says to aim for. It's sorted by how useful the guide rates the reward, then by the guide's stage.</p>
+        <p>Import your statistics export and this tab lists every challenge you can start or continue right now, with what the guide says to aim for. It's grouped by when the guide says to do each one for your ChP, then sorted by how useful the guide rates the reward.</p>
         <p>Only challenges the import can confirm are unlocked are listed. Import again after you finish a batch to refresh it.</p>
         <button type="button" class="btn primary" id="rec-import">Import stats</button></div>`);
       L.rec.innerHTML = frag.join("");
-      layouts.rec = { pos, w: W, h: 400 };
+      layouts.rec = { pos, w: W, h: 400, mini: new Set(), later: new Set() };
       return;
     }
     const bandNow = currentBandIdx();
@@ -373,18 +378,43 @@
     const isRepeat = it => REPEAT_TYPES.has(it.c.type) && typeof it.nx.target !== "number";
     const nRepeat = items.filter(isRepeat).length;
     if (!recShowRepeat) for (let i = items.length - 1; i >= 0; i--) if (isRepeat(items[i])) items.splice(i, 1);
-    items.sort((a, b) => (b.c.rewardRating || 0) - (a.c.rewardRating || 0) || a.nx.k - b.nx.k || CH.indexOf(a.c) - CH.indexOf(b.c));
-    frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Sorted by reward rating, then by the guide's stage. Unlocks the export can't confirm are left out.</small>${nRepeat ? `<label class="rw-all rec-repeat"><input type="checkbox" id="rec-repeat"${recShowRepeat ? " checked" : ""}> Show Unlimited, Hard Mode and Root challenges (${nRepeat})</label>` : ""}</div>`);
+    // timing group: 0 = the player's ChP band or earlier, 1 = next band, 2 = two or more bands ahead
+    const tier = it => bandNow == null ? 0 : Math.max(0, Math.min(2, it.band - bandNow));
+    items.forEach(it => it.tier = tier(it));
+    items.sort((a, b) => a.tier - b.tier || (b.c.rewardRating || 0) - (a.c.rewardRating || 0) || a.nx.k - b.nx.k || CH.indexOf(a.c) - CH.indexOf(b.c));
+    const chpTxt = imp.stats.chp != null ? fmt(imp.stats.chp) + " ChP" : "your ChP";
+    frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Grouped by when the guide says to do them at ${chpTxt}, then sorted by reward rating. Unlocks the export can't confirm are left out.</small>${nRepeat ? `<label class="rw-all rec-repeat"><input type="checkbox" id="rec-repeat"${recShowRepeat ? " checked" : ""}> Show Unlimited, Hard Mode and Root challenges (${nRepeat})</label>` : ""}</div>`);
     y += 62;
-    let lastR = -1;
+    const nxt = bandNow != null && D.bands[bandNow + 1] ? D.bands[bandNow + 1].label : "";
+    const TIERS = [
+      ["Do now", "The guide puts these at your ChP or earlier"],
+      ["Coming up", `Guide says ${nxt}. Fine to start if you're strong for your ChP`],
+      ["Later", "Two or more ChP bands ahead"],
+    ];
+    const mini = new Set(), later = new Set();
+    let lastT = -1;
     for (const it of items) {
-      const r = it.c.rewardRating || 0;
-      if (r !== lastR) {
-        frag.push(`<div class="group-bar rec-h" style="left:${X0}px;top:${y}px;width:${FW}px;height:30px">${r ? `<span class="stars">${stars(r)}</span> reward` : "No reward rating"}</div>`);
-        y += 42; lastR = r;
+      if (it.tier !== lastT) {
+        lastT = it.tier;
+        const n = items.filter(x => x.tier === lastT).length, [lbl, sub] = TIERS[lastT];
+        if (lastT === 2) frag.push(`<div class="group-bar rec-h rec-later-bar toggle${recLaterOpen ? "" : " is-col"}" role="button" tabindex="0" aria-expanded="${recLaterOpen}" style="left:${X0}px;top:${y}px;width:${FW}px;height:30px"><span class="chev">▾</span>${lbl} · ${n}<small>${sub} · click to ${recLaterOpen ? "collapse" : "expand"}</small></div>`);
+        else frag.push(`<div class="group-bar rec-h" style="left:${X0}px;top:${y}px;width:${FW}px;height:30px">${lbl} · ${n}<small>${esc(sub)}</small></div>`);
+        y += 42;
       }
       const { c, st, nx, band } = it;
+      const isMini = it.tier === 2 && !recLaterOpen;
+      if (isMini) mini.add(c.code);
+      if (it.tier === 2) later.add(c.code);
       pos[c.code] = { x: X0, y };
+      const lat = it.tier === 2 ? " later" : "";
+      const h = isMini ? miniH(c.code) : hC[c.code];
+      const rx = narrow ? X0 : X0 + BW + GAP, ry = narrow ? y + h + 6 : y;
+      if (isMini) {
+        frag.push(`<div class="rec-row mini later" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
+          <div class="what"><span class="nm">${esc(c.name)}</span> ▶ ${esc(nx.txt)}</div><span class="tag">${esc(D.bands[band].label)}</span></div>`);
+        y += h + 8;
+        continue;
+      }
       let prog = "";
       if (st.s === "progress") prog = `You have <b>${st.v}/${st.cap}</b>`;
       else if (st.s === "count") prog = `You have <b>${st.v}</b> completions`;
@@ -393,27 +423,24 @@
       if (typeof nx.target === "number" && nx.target < (st.cap || Infinity)) prog += ` · aim for <b>${nx.target}</b>`;
       else if (typeof nx.target === "string") prog += ` · aim for <b>${esc(nx.target)}</b>`;
       const rsum = window.ITRTGRewards.rewardSummary(c.code, BY);
-      const ahead = bandNow != null && band > bandNow ? `<span class="tag ahead">Guide says later</span>` : "";
-      const h = hC[c.code];
-      const rx = narrow ? X0 : X0 + BW + GAP, ry = narrow ? y + h + 6 : y;
-      frag.push(`<div class="rec-row" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
+      frag.push(`<div class="rec-row${lat}" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
         <div class="what">▶ ${esc(nx.txt)}</div>
-        <div class="meta"><span class="tag">${esc(D.bands[band].label)}</span>${ahead}<span>${prog}</span></div>
+        <div class="meta"><span class="tag">${esc(D.bands[band].label)}</span><span>${prog}</span></div>
         ${rsum ? `<div class="rw">${esc(rsum)}</div>` : ""}</div>`);
-      y += narrow ? h + 6 + 16 * Math.ceil((nx.txt.length + 4) / 40) + (rsum ? 18 * Math.ceil(rsum.length / 48) : 0) + 58 : Math.max(h, 96) + 12;
+      y += Math.max(h, 96) + 12;
     }
     L.rec.innerHTML = frag.join("");
     // second pass: stack everything using the real rendered heights
     let yy = 30;
     for (const el of L.rec.children) {
       if (el.classList.contains("rec-row")) {
-        const code = el.dataset.code, h = hC[code];
+        const code = el.dataset.code, h = mini.has(code) ? miniH(code) : hC[code];
         pos[code].y = yy;
         if (narrow) { el.style.top = (yy + h + 6) + "px"; yy += h + 6 + el.offsetHeight + 18; }
-        else { el.style.top = yy + "px"; yy += Math.max(h, el.offsetHeight) + 12; }
+        else { el.style.top = yy + "px"; yy += Math.max(h, el.offsetHeight) + (mini.has(code) ? 8 : 12); }
       } else { el.style.top = yy + "px"; yy += el.offsetHeight + (el.classList.contains("rec-h") ? 12 : 22); }
     }
-    layouts.rec = { pos, w: W, h: yy + 40 };
+    layouts.rec = { pos, w: W, h: yy + 40, mini, later };
   }
 
   // =====================================================================
@@ -425,6 +452,8 @@
     for (const c of CH) {
       const p = lay.pos[c.code];
       if (p) boxes[c.code].style.transform = `translate(${p.x}px, ${p.y}px)`;
+      boxes[c.code].classList.toggle("rec-mini", view === "rec" && lay.mini.has(c.code));
+      boxes[c.code].classList.toggle("rec-later", view === "rec" && lay.later.has(c.code));
       boxes[c.code].classList.toggle("collapsed", !p || (view === "road" && lay.hidden && lay.hidden.has(c.code)));
     }
     world.style.width = lay.w + "px"; world.style.height = lay.h + "px";
@@ -580,6 +609,7 @@
   // clicks on boxes / stations / pills
   vp.addEventListener("click", e => {
     if (moved) { moved = false; return; }
+    if (e.target.closest(".rec-later-bar")) { toggleRecLater(); return; }
     const gb = e.target.closest(".group-bar.toggle");
     if (gb) { toggleGroup(gb.dataset.group); return; }
     if (e.target.closest("#rec-import")) { openModal(); return; }
@@ -589,12 +619,18 @@
     if (code === selCode && !b.dataset.jump) { deselect(); return; }
     select(code, !!b.dataset.jump);
   });
+  function toggleRecLater() {
+    recLaterOpen = !recLaterOpen; store.set("itrtg.recLater", recLaterOpen ? "1" : "0");
+    layoutRec(); placeBoxes();
+    L.rec.querySelector(".rec-later-bar")?.focus({ preventScroll: true });
+  }
   vp.addEventListener("change", e => {
     if (e.target.id !== "rec-repeat") return;
     recShowRepeat = e.target.checked; store.set("itrtg.recRepeat", recShowRepeat ? "1" : "0");
     layoutRec(); placeBoxes();
   });
   vp.addEventListener("keydown", e => {
+    if (e.target.closest(".rec-later-bar") && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleRecLater(); return; }
     const gb = e.target.closest(".group-bar.toggle");
     if (gb && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleGroup(gb.dataset.group); return; }
     const b = e.target.closest(".box");
