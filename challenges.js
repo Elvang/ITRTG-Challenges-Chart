@@ -31,12 +31,14 @@
 //    wikiRev     : timestamp of the wiki page revision these were taken from (the update prompt uses it to spot changed pages)
 //
 //  Timing/order: "ITRTG Challenge Guide" by Sim, Realtum, Bulborbish (2026-03-27)
+//  Opening order (DRC, GPC, UBC, DPC, then DMC/DNDC before UPC): Womba's
+//    "Challenge Progression helper" (2026-02-28)
 //  Unlocks, max, excerpts: itrtg.wiki.gg (checked 2026-09-29)
 //  wikiInfo excerpts: shortened from ITRTG Wiki pages by its contributors, licensed CC BY-SA 4.0
 //  (https://creativecommons.org/licenses/by-sa/4.0/). Keep that licence on this text if you edit it.
 // =====================================================================
 window.ITRTG = {
- "updated": "2026-09-30",
+ "updated": "2026-10-05",
  "sources": {
   "guide": {
    "label": "ITRTG Challenge Guide",
@@ -226,7 +228,7 @@ window.ITRTG = {
    "notes": "First time unlocks GP pet. The rest: speeding / speedfalling",
    "chp": 37,
    "stages": {
-    "0": "Do 1 as 3rd challenge",
+    "0": "Do 1 as the 2nd challenge",
     "3": "Rest"
    },
    "check": [
@@ -502,7 +504,7 @@ window.ITRTG = {
    "notes": "Train pets, optimal 1h item camps",
    "chp": 240,
    "stages": {
-    "1": "After DRC"
+    "1": "After DRC, DMC and DNDC"
    },
    "check": [
     {
@@ -2158,7 +2160,7 @@ window.ITRTG = {
    "notes": "Improved next-at for 99 GP. 1.5-3h runs make this fast",
    "chp": 450,
    "stages": {
-    "0": "Do 1 as the 2nd challenge",
+    "0": "Do 1 as the 1st challenge",
     "1": "Top priority"
    },
    "check": [],
@@ -3084,9 +3086,9 @@ window.ITRTG = {
    "notes": "Buy 30-50k clones, instant clones to softcap, GP into BS or div; 1-3h runs get you under 24h",
    "chp": 1875,
    "stages": {
-    "0": "Might unleash buffs",
-    "3": "UBC mines",
-    "6": "2nd 50 (to skip AACs)"
+    "0": "Do 1 as the 3rd challenge (Crystal Factory; might unleash buffs)",
+    "3": "Rest of the first 50 (UBC mines)",
+    "6": "Next 50 (to skip AACs)"
    },
    "check": [],
    "export": "Ultimate Baal Challenges",
@@ -3784,7 +3786,7 @@ window.ITRTG = {
    "notes": "Even the minimum reward is worthwhile",
    "chp": 333,
    "stages": {
-    "0": "Do 1 as the 1st challenge",
+    "0": "Do 1 as the 4th challenge",
     "2": "2nd DPC",
     "4": "Every 6-12 months for new highscore"
    },
@@ -3842,7 +3844,7 @@ window.ITRTG = {
    "notes": "40k DMC for book evo",
    "chp": 333,
    "stages": {
-    "2": "1st - mightruns only"
+    "1": "1st after the rest of DRC - mightruns only"
    },
    "check": [],
    "statHint": [
@@ -3909,7 +3911,7 @@ window.ITRTG = {
    "notes": "Use the DNDC calculator in compiled",
    "chp": 333,
    "stages": {
-    "2": "1st lazyrun",
+    "1": "1st lazyrun, after DMC",
     "5": "Second for 15%",
     "9": "Every 6-8 months"
    },
