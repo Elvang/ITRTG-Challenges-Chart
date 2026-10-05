@@ -248,6 +248,10 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 .drawer .checks .m { width: 18px; flex: none; text-align: center; font-weight: 700; }
 .drawer .checks .y { color: var(--ok); } .drawer .checks .n { color: var(--bad); } .drawer .checks .q { color: var(--fg-faint); }
 .drawer .checks small { color: var(--fg-dim); }
+.drawer .hints .hint-when { margin: 10px 0 4px; font-size: 12.5px; }
+.drawer .hints .hint-when:first-of-type { margin-top: 0; }
+.drawer .hints .hint-when.now { color: var(--accent); font-weight: 600; }
+.drawer .hints .have { color: var(--fg-dim); }
 .drawer .prog { display: flex; align-items: center; gap: 10px; }
 .drawer .prog .barx { flex: 1; height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; }
 .drawer .prog .barx i { display: block; height: 100%; background: var(--c); }

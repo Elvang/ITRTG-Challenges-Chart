@@ -366,27 +366,56 @@
   const HINT_LABEL = { maxClones: "clones", lightClones: "light clones", cc: "Creation Count", csTotal: "% CS", bsTotal: "% BS",
     bsGP: "% BS from GP", csGP: "% CS from GP", bsGPCP: "% BS from GP + CP", petGrowth: "pet growth", pets: "pets",
     totalMight: "Total Might", gpBank: "banked GP" };
+  function hintFor(c, st, nx) {
+    let t;
+    if (c.type === "D") { const v = nx && typeof nx.target === "string" && nx.target.match(/v(\d+)/); t = v ? +v[1] : st.v > 0 ? 2 : 1; }
+    else t = (st.v || 0) + 1;
+    return c.statHint.find(h => h.to == null || t <= h.to) || c.statHint[c.statHint.length - 1];
+  }
+  const hintRow = k => ({ k, ok: P.evalCond(k, imp), have: k.ch ? imp.done[k.ch] : k.score ? imp.scores[k.score] : imp.stats[k.stat] });
   function hintCheck(c, st, nx) {
     if (!c.statHint || !imp) return null;
-    let t;
-    if (c.type === "D") { const v = typeof nx.target === "string" && nx.target.match(/v(\d+)/); t = v ? +v[1] : st.v > 0 ? 2 : 1; }
-    else t = (st.v || 0) + 1;
-    const hint = c.statHint.find(h => h.to == null || t <= h.to) || c.statHint[c.statHint.length - 1];
+    const hint = hintFor(c, st, nx);
     if (!hint.need.length) return null;
-    const rows = hint.need.map(k => ({ k, ok: P.evalCond(k, imp), have: k.ch ? imp.done[k.ch] : k.score ? imp.scores[k.score] : imp.stats[k.stat] }));
+    const rows = hint.need.map(hintRow);
     const verdict = rows.some(r => r.ok === false) ? "short" : rows.every(r => r.ok === true) ? "ready" : null;
     return { hint, rows, verdict };
   }
-  function hintText(r) {
-    const k = r.k;
-    if (k.ch) return `${k.n} ${k.ch} <span class="have">(you have ${r.have ?? "–"})</span>`;
-    if (k.score) return `${k.score} v${k.min} <span class="have">(your best ${r.have != null ? "v" + fmt(r.have) : "–"})</span>`;
-    if (k.stat === "pbaal") return `P.Baal v${k.min} <span class="have">(you have v${fmt(r.have)})</span>`;
-    if (k.stat === "planetLevel") return `planet level ${fmt(k.min)} <span class="have">(${r.have == null ? "unknown" : (imp.stats.planetLevelExact ? "yours is " : "yours is at least ") + fmt(r.have)})</span>`;
-    const [h, n] = fmtPair(r.have, k.min);
+  // r = {k, have}; without an import (bare) only the recommendation is shown
+  function hintText(r, bare) {
+    const k = r.k, hv = t => bare ? "" : ` <span class="have">(${t})</span>`;
+    if (k.ch) return `${k.n} ${k.ch}` + hv(`you have ${r.have ?? "–"}`);
+    if (k.score) return `${k.score} v${k.min}` + hv(`your best ${r.have != null ? "v" + fmt(r.have) : "–"}`);
+    if (k.stat === "pbaal") return `P.Baal v${k.min}` + hv(`you have v${fmt(r.have)}`);
+    if (k.stat === "planetLevel") return `planet level ${fmt(k.min)}` + hv(r.have == null ? "unknown" : (imp.stats.planetLevelExact ? "yours is " : "yours is at least ") + fmt(r.have));
+    const [h, n] = fmtPair(bare ? k.min : r.have, k.min);
     const lbl = k.stat.startsWith("perm:") ? `${k.stat.slice(5)} perm levels` : HINT_LABEL[k.stat] || k.stat;
     const join = lbl.startsWith("%") ? "" : " ";
-    return `${n}${join}${esc(lbl)} <span class="have">(you have ${r.have == null ? "–" : h + (lbl.startsWith("%") ? "%" : "")})</span>`;
+    return `${n}${join}${esc(lbl)}` + hv(`you have ${r.have == null ? "–" : h + (lbl.startsWith("%") ? "%" : "")}`);
+  }
+  // Details panel: every statHint range, with ✓/✗ against the import and the range that applies now marked
+  function hintSection(c, st) {
+    if (!c.statHint || !c.statHint.some(h => h.need.length)) return "";
+    const isDay = c.type === "D";
+    const now = imp && st && st.s !== "done" ? hintFor(c, st, recNext(c, st)) : null;   // maxed: no "next one"
+    let from = 1;
+    const blocks = c.statHint.map(h => {
+      let when;
+      if (h.label) when = h.label;
+      else if (isDay) when = h.to == null ? (from > 1 ? "later runs" : "every run") : c.code === "RTI" ? `up to v${h.to}` : h.to === 1 ? "the first run" : `up to run ${h.to}`;
+      else when = h.to == null ? (from > 1 ? `#${from} on` : "all of them") : from === h.to ? `#${h.to}` : `#${from}–${h.to}`;
+      if (h.to != null) from = h.to + 1;
+      if (!h.need.length) return "";
+      const rows = h.need.map(k => {
+        if (!imp) return `<li><span class="m q">•</span><span>${hintText({ k }, true)}</span></li>`;
+        const r = hintRow(k);
+        const m = r.ok === true ? '<span class="m y">✓</span>' : r.ok === false ? '<span class="m n">✗</span>' : '<span class="m q">?</span>';
+        return `<li>${m}<span>${hintText(r)}</span></li>`;
+      }).join("");
+      return `<p class="muted hint-when${h === now ? " now" : ""}">For ${esc(when)}${h === now ? " · applies to your next one" : ""}</p><ul class="checks">${rows}</ul>`;
+    }).join("");
+    return `<section class="hints"><h3>Recommended stats</h3>${blocks}
+      <p class="muted" style="font-size:12px;margin:8px 0 0">The parts of the wiki's recommended stats the export can check. The Recommended tab moves a row up or down with these.</p></section>`;
   }
   function layoutRec() {
     const pos = {}, frag = [];
@@ -948,6 +977,7 @@
       ${c.rewardRating ? `<dt>Reward rating</dt><dd><span class="stars" title="How useful the guide rates the reward">${stars(c.rewardRating)}</span> <span class="muted">(guide)</span></dd>` : ""}
     </dl></section>`);
     parts.push(rewardSection(c));
+    parts.push(hintSection(c, imp ? st : null));
     // timeline
     const st2 = Object.keys(c.stages).map(Number).sort((a, b) => a - b);
     if (st2.length) {
