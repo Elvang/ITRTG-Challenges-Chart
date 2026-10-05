@@ -3772,7 +3772,7 @@ window.ITRTG = {
    ],
    "max": "Unlimited",
    "playstyle": null,
-   "rewardRating": null,
+   "rewardRating": 2,
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3817,7 +3817,7 @@ window.ITRTG = {
    ],
    "max": "Unlimited",
    "playstyle": null,
-   "rewardRating": null,
+   "rewardRating": 2,
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3862,7 +3862,7 @@ window.ITRTG = {
    ],
    "max": "Unlimited",
    "playstyle": null,
-   "rewardRating": null,
+   "rewardRating": 2,
    "notes": "No specific timing in guide; treated like other HM challenges",
    "chp": null,
    "stages": {
@@ -3907,7 +3907,7 @@ window.ITRTG = {
    ],
    "max": "50 each",
    "playstyle": null,
-   "rewardRating": null,
+   "rewardRating": 2,
    "notes": "Not individually in the guide; guide says Root challenges should not take longer than 6h",
    "chp": null,
    "stages": {

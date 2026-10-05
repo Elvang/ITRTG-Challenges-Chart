@@ -300,7 +300,11 @@
   //  Recommended list (needs an import)
   //  Only challenges the import shows as unlocked; one row each with the guide's next instruction.
   //  Sorted by the guide's reward rating, then by the guide's stage.
+  //  Unlimited, Hard Mode and Root rows are hidden unless the toggle is on: the export can't tell whether
+  //  another run is worth it. A row still shows when the guide gives it a number to reach (UCC's first 20).
   // =====================================================================
+  let recShowRepeat = store.get("itrtg.recRepeat") === "1";
+  const REPEAT_TYPES = new Set(["U", "HM", "R"]);
   // How many completions a guide instruction asks for (null = no number in it)
   function stageTarget(txt, prev, cap, baseMax) {
     let m;
@@ -366,14 +370,17 @@
       if (!nx) continue;
       items.push({ c, st, nx, band: D.bands.indexOf(bandOfStep(nx.k)) });
     }
+    const isRepeat = it => REPEAT_TYPES.has(it.c.type) && typeof it.nx.target !== "number";
+    const nRepeat = items.filter(isRepeat).length;
+    if (!recShowRepeat) for (let i = items.length - 1; i >= 0; i--) if (isRepeat(items[i])) items.splice(i, 1);
     items.sort((a, b) => (b.c.rewardRating || 0) - (a.c.rewardRating || 0) || a.nx.k - b.nx.k || CH.indexOf(a.c) - CH.indexOf(b.c));
-    frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Sorted by reward rating, then by the guide's stage. Unlocks the export can't confirm are left out.</small></div>`);
+    frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Sorted by reward rating, then by the guide's stage. Unlocks the export can't confirm are left out.</small>${nRepeat ? `<label class="rw-all rec-repeat"><input type="checkbox" id="rec-repeat"${recShowRepeat ? " checked" : ""}> Show Unlimited, Hard Mode and Root challenges (${nRepeat})</label>` : ""}</div>`);
     y += 62;
     let lastR = -1;
     for (const it of items) {
       const r = it.c.rewardRating || 0;
       if (r !== lastR) {
-        frag.push(`<div class="group-bar rec-h" style="left:${X0}px;top:${y}px;width:${FW}px;height:30px">${r ? `<span class="stars">${stars(r)}</span> reward` : "No reward rating (Hard Mode, Root)"}</div>`);
+        frag.push(`<div class="group-bar rec-h" style="left:${X0}px;top:${y}px;width:${FW}px;height:30px">${r ? `<span class="stars">${stars(r)}</span> reward` : "No reward rating"}</div>`);
         y += 42; lastR = r;
       }
       const { c, st, nx, band } = it;
@@ -581,6 +588,11 @@
     const code = b.dataset.jump || b.dataset.code;
     if (code === selCode && !b.dataset.jump) { deselect(); return; }
     select(code, !!b.dataset.jump);
+  });
+  vp.addEventListener("change", e => {
+    if (e.target.id !== "rec-repeat") return;
+    recShowRepeat = e.target.checked; store.set("itrtg.recRepeat", recShowRepeat ? "1" : "0");
+    layoutRec(); placeBoxes();
   });
   vp.addEventListener("keydown", e => {
     const gb = e.target.closest(".group-bar.toggle");
