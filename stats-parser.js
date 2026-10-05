@@ -51,6 +51,11 @@
     ["chp", /^Challenge Points:\s*(.+)$/m],
     ["hmChp", /^Hard mode Challenge points:\s*(.+)$/mi],
     ["bsTotal", /^Building Speed:\s*([^,(]+?)\s*%/m],
+    ["csTotal", /^Creating Speed:\s*([^,(]+?)\s*%/m],
+    ["totalMight", /^Total Might:\s*(.+)$/m],
+    ["gpBank", /^Available GP:\s*(.+)$/m],
+    ["chpPlanet", /^Chp Planet Level:\s*(.+)$/mi],
+    ["bsCP", new RegExp("^Building Speed:.*?" + NUM + "\\s*%\\s*from crystal power", "m")],
     ["csGP", new RegExp("^Creating Speed:.*?" + NUM + "\\s*%\\s*from god power", "m")],
     ["bsGP", new RegExp("^Building Speed:.*?" + NUM + "\\s*%\\s*from god power", "m")],
     ["progress", /^Overall Game Progress:\s*([\d.]+)\s*%/m],
@@ -79,8 +84,14 @@
     const v4 = text.match(/^Fastest time to defeat ITRTGV4:\s*(\d+):(\d+):(\d+)/mi);
     if (v4) { res.stats.v4Defeated = 1; res.stats.v4Hours = +v4[1] + v4[2] / 60 + v4[3] / 3600; }
     // RTI permanent levels (lowest element)
-    const perms = [...text.matchAll(/^.+? perm level:\s*(.+)$/gm)].map(m => parseNumber(m[1])).filter(v => v != null);
+    const perms = [...text.matchAll(/^(.+?) perm level:\s*(.+)$/gm)].map(m => {
+      const v = parseNumber(m[2]);
+      if (v != null) res.stats["perm:" + m[1].trim()] = v;   // e.g. "perm:Space Dim" (used by statHint)
+      return v;
+    }).filter(v => v != null);
     if (perms.length) res.stats.rtiPermMin = Math.min(...perms);
+    // Building Speed % from god power + crystal power (OCCC's recommendation)
+    if (res.stats.bsGP != null && res.stats.bsCP != null) res.stats.bsGPCP = res.stats.bsGP + res.stats.bsCP;
 
     // challenge list
     const byExport = {};
@@ -101,6 +112,15 @@
         if (code) { res.scores[code] = parseNumber(m[2]); res.found++; }
         else res.unknown.push(line.trim());
       }
+    }
+    // Minimum planet level (wiki Planet > Upgrading): 5 from the tutorial sacrifices, +1 per UUC (the export's
+    // count includes the 10 from UCC; levels stop at the cap), +1 per P.Baal in the best DBC, + ChP purchases.
+    // Only known once UUC or DBC has been done (both need a level 5 planet). Older exports have no ChP line,
+    // so it's a lower bound there.
+    const uuc = res.done.UUC, dbc = res.scores.DBC;
+    if (uuc > 0 || dbc > 0) {
+      res.stats.planetLevel = 5 + Math.min(uuc || 0, res.cap.UUC || 55) + (dbc || 0) + (res.stats.chpPlanet || 0);
+      res.stats.planetLevelExact = res.stats.chpPlanet != null;
     }
     if (!res.error && res.found === 0) res.error = "No challenge lines were found. Paste the whole export, including the \"Challenges\" section at the end.";
     return res;

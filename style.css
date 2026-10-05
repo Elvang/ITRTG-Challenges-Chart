@@ -293,6 +293,12 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 .rec-row .meta b { color: var(--fg); font-variant-numeric: tabular-nums; }
 .rec-row .tag { font: 600 11px/1 var(--font-body); padding: 4px 7px; border-radius: 999px; background: var(--surface-2); color: var(--fg); }
 .rec-row .rw { font-size: 12.5px; color: var(--fg-dim); }
+.rec-row .hint { font-size: 12.5px; }
+.rec-row .hint .have { color: var(--fg-dim); }
+.rec-row .hint.short { color: color-mix(in srgb, var(--warn) 70%, var(--fg)); }
+.rec-row .hint.ready { color: color-mix(in srgb, var(--ok) 70%, var(--fg)); }
+.rec-row .tag.hint-down { background: color-mix(in srgb, var(--warn) 22%, transparent); }
+.rec-row .tag.hint-up, .rec-row .tag.hint-ok { background: color-mix(in srgb, var(--ok) 22%, transparent); }
 .group-bar.rec-h small { margin-left: 4px; }
 /* Later group: dimmed; collapsed rows show only the box header and a one-line row */
 .rec-row.later, .box.rec-later { opacity: .55; }

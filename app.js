@@ -346,6 +346,33 @@
     }
     return null;
   }
+  // statHint: the wiki's recommended stats the export can check (see challenges.js).
+  // Picks the hint for the next completion and returns { hint, rows: [{k, ok, have}], verdict: "ready" | "short" | null }.
+  const HINT_LABEL = { maxClones: "clones", lightClones: "light clones", cc: "Creation Count", csTotal: "% CS", bsTotal: "% BS",
+    bsGP: "% BS from GP", csGP: "% CS from GP", bsGPCP: "% BS from GP + CP", petGrowth: "pet growth", pets: "pets",
+    totalMight: "Total Might", gpBank: "banked GP" };
+  function hintCheck(c, st, nx) {
+    if (!c.statHint || !imp) return null;
+    let t;
+    if (c.type === "D") { const v = typeof nx.target === "string" && nx.target.match(/v(\d+)/); t = v ? +v[1] : st.v > 0 ? 2 : 1; }
+    else t = (st.v || 0) + 1;
+    const hint = c.statHint.find(h => h.to == null || t <= h.to) || c.statHint[c.statHint.length - 1];
+    if (!hint.need.length) return null;
+    const rows = hint.need.map(k => ({ k, ok: P.evalCond(k, imp), have: k.ch ? imp.done[k.ch] : k.score ? imp.scores[k.score] : imp.stats[k.stat] }));
+    const verdict = rows.some(r => r.ok === false) ? "short" : rows.every(r => r.ok === true) ? "ready" : null;
+    return { hint, rows, verdict };
+  }
+  function hintText(r) {
+    const k = r.k;
+    if (k.ch) return `${k.n} ${k.ch} <span class="have">(you have ${r.have ?? "–"})</span>`;
+    if (k.score) return `${k.score} v${k.min} <span class="have">(your best ${r.have != null ? "v" + fmt(r.have) : "–"})</span>`;
+    if (k.stat === "pbaal") return `P.Baal v${k.min} <span class="have">(you have v${fmt(r.have)})</span>`;
+    if (k.stat === "planetLevel") return `planet level ${fmt(k.min)} <span class="have">(${r.have == null ? "unknown" : (imp.stats.planetLevelExact ? "yours is " : "yours is at least ") + fmt(r.have)})</span>`;
+    const [h, n] = fmtPair(r.have, k.min);
+    const lbl = k.stat.startsWith("perm:") ? `${k.stat.slice(5)} perm levels` : HINT_LABEL[k.stat] || k.stat;
+    const join = lbl.startsWith("%") ? "" : " ";
+    return `${n}${join}${esc(lbl)} <span class="have">(you have ${r.have == null ? "–" : h + (lbl.startsWith("%") ? "%" : "")})</span>`;
+  }
   function layoutRec() {
     const pos = {}, frag = [];
     const vw = vp.getBoundingClientRect().width;
@@ -379,8 +406,16 @@
     const nRepeat = items.filter(isRepeat).length;
     if (!recShowRepeat) for (let i = items.length - 1; i >= 0; i--) if (isRepeat(items[i])) items.splice(i, 1);
     // timing group: 0 = the player's ChP band or earlier, 1 = next band, 2 = two or more bands ahead
+    // The wiki's recommended stats move a row one group: down when the export shows them unmet,
+    // up when they're all met for a row the guide puts later.
     const tier = it => bandNow == null ? 0 : Math.max(0, Math.min(2, it.band - bandNow));
-    items.forEach(it => it.tier = tier(it));
+    items.forEach(it => {
+      it.tier = tier(it);
+      it.hc = hintCheck(it.c, it.st, it.nx);
+      it.moved = 0;
+      if (it.hc && it.hc.verdict === "short" && it.tier < 2) { it.tier++; it.moved = 1; }
+      else if (it.hc && it.hc.verdict === "ready" && it.tier > 0) { it.tier--; it.moved = -1; }
+    });
     items.sort((a, b) => a.tier - b.tier || (b.c.rewardRating || 0) - (a.c.rewardRating || 0) || a.nx.k - b.nx.k || CH.indexOf(a.c) - CH.indexOf(b.c));
     const chpTxt = imp.stats.chp != null ? fmt(imp.stats.chp) + " ChP" : "your ChP";
     frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Grouped by when the guide says to do them at ${chpTxt}, then sorted by reward rating. Unlocks the export can't confirm are left out.</small>${nRepeat ? `<label class="rw-all rec-repeat"><input type="checkbox" id="rec-repeat"${recShowRepeat ? " checked" : ""}> Show Unlimited, Hard Mode and Root challenges (${nRepeat})</label>` : ""}</div>`);
@@ -388,8 +423,8 @@
     const nxt = bandNow != null && D.bands[bandNow + 1] ? D.bands[bandNow + 1].label : "";
     const TIERS = [
       ["Do now", "The guide puts these at your ChP or earlier"],
-      ["Coming up", `Guide says ${nxt}. Fine to start if you're strong for your ChP`],
-      ["Later", "Two or more ChP bands ahead"],
+      ["Coming up", nxt ? `Guide says ${nxt}, or moved by the wiki's recommended stats` : "Moved down by the wiki's recommended stats"],
+      ["Later", "Two or more ChP bands ahead, or moved down by the wiki's recommended stats"],
     ];
     const mini = new Set(), later = new Set();
     let lastT = -1;
@@ -423,10 +458,21 @@
       if (typeof nx.target === "number" && nx.target < (st.cap || Infinity)) prog += ` · aim for <b>${nx.target}</b>`;
       else if (typeof nx.target === "string") prog += ` · aim for <b>${esc(nx.target)}</b>`;
       const rsum = window.ITRTGRewards.rewardSummary(c.code, BY);
+      let hl = "", htag = "";
+      if (it.hc && it.hc.verdict) {
+        const forTxt = it.hc.hint.label ? ` for ${esc(it.hc.hint.label)}` : "";
+        if (it.hc.verdict === "short") {
+          hl = `<div class="hint short">Wiki recommends${forTxt}: ${it.hc.rows.filter(r => r.ok === false).map(hintText).join(" · ")}</div>`;
+          if (it.moved) htag = `<span class="tag hint-down">Moved down: below the wiki's stats</span>`;
+        } else {
+          if (it.moved) { htag = `<span class="tag hint-up">Moved up: your stats look ready</span>`; hl = `<div class="hint ready">Meets the wiki's recommendation${forTxt}: ${it.hc.rows.map(hintText).join(" · ")}</div>`; }
+          else htag = `<span class="tag hint-ok" title="Meets the wiki's recommended stats${forTxt}">✓ Wiki stats</span>`;
+        }
+      }
       frag.push(`<div class="rec-row${lat}" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
         <div class="what">▶ ${esc(nx.txt)}</div>
-        <div class="meta"><span class="tag">${esc(D.bands[band].label)}</span><span>${prog}</span></div>
-        ${rsum ? `<div class="rw">${esc(rsum)}</div>` : ""}</div>`);
+        <div class="meta"><span class="tag">${esc(D.bands[band].label)}</span>${htag}<span>${prog}</span></div>
+        ${hl}${rsum ? `<div class="rw">${esc(rsum)}</div>` : ""}</div>`);
       y += Math.max(h, 96) + 12;
     }
     L.rec.innerHTML = frag.join("");

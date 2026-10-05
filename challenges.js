@@ -16,6 +16,10 @@
 //                   {score:"RTI", min:140}   a day-challenge best score
 //                   {note:"text"}            can't be checked from the export
 //                   {any:[...]}              any one of these
+//    statHint    : the wiki's "Recommended stats", only the parts the export can check. A list of
+//                  {to?, label?, need:[conditions like check]}; the first entry whose "to" covers the next
+//                  completion applies (day challenges: RTI uses the score target, others 1 = first run).
+//                  Used by the Recommended tab to move a row up or down one timing group.
 //    scoreCap    : day challenges only - the best score where ChP stops increasing {value, label, short, chp}
 //    export      : the name used in the in-game statistics export
 //    tools       : [[label, url], ...]  guides / calculators
@@ -264,6 +268,24 @@ window.ITRTG = {
      "note": "Planet level 5"
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 500000
+      },
+      {
+       "stat": "csTotal",
+       "min": 1000
+      },
+      {
+       "stat": "bsTotal",
+       "min": 5000
+      }
+     ]
+    }
+   ],
    "export": "Ultimate Universe Challenges",
    "tools": [],
    "wikiInfo": {
@@ -308,6 +330,24 @@ window.ITRTG = {
      "min": 200000
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 2000000
+      },
+      {
+       "stat": "cc",
+       "min": 50
+      },
+      {
+       "stat": "bsGP",
+       "min": 4000
+      }
+     ]
+    }
+   ],
    "export": "Monument Multi Challenges",
    "tools": [],
    "wikiInfo": {
@@ -347,6 +387,20 @@ window.ITRTG = {
     {
      "ch": "UUC",
      "n": 1
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 200000
+      },
+      {
+       "stat": "planetLevel",
+       "min": 6
+      }
+     ]
     }
    ],
    "export": "All Achievements Challenges",
@@ -398,6 +452,24 @@ window.ITRTG = {
      "n": 1
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 3200000
+      },
+      {
+       "stat": "csTotal",
+       "min": 5500
+      },
+      {
+       "stat": "bsTotal",
+       "min": 6000
+      }
+     ]
+    }
+   ],
    "export": "Black Hole Challenges",
    "tools": [],
    "wikiInfo": {
@@ -442,6 +514,20 @@ window.ITRTG = {
      ]
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "petGrowth",
+       "min": 40000
+      },
+      {
+       "stat": "pets",
+       "min": 12
+      }
+     ]
+    }
+   ],
    "export": "Ultimate Pet Challenges",
    "tools": [],
    "wikiInfo": {
@@ -480,6 +566,16 @@ window.ITRTG = {
     {
      "ch": "UPC",
      "n": 2
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "petGrowth",
+       "min": 100000
+      }
+     ]
     }
    ],
    "export": "Pet Level Challenges",
@@ -561,6 +657,20 @@ window.ITRTG = {
      "min": 1000
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "planetLevel",
+       "min": 5
+      },
+      {
+       "stat": "maxClones",
+       "min": 500000
+      }
+     ]
+    }
+   ],
    "export": "Crystal Power Challenges",
    "tools": [
     [
@@ -608,6 +718,24 @@ window.ITRTG = {
     {
      "ch": "1KC",
      "n": 1
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "DRC",
+       "n": 25
+      },
+      {
+       "ch": "1KC",
+       "n": 40
+      },
+      {
+       "stat": "maxClones",
+       "min": 5000000
+      }
+     ]
     }
    ],
    "export": "Total Might Challenges",
@@ -700,6 +828,20 @@ window.ITRTG = {
      "min": 40000
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 150000000
+      },
+      {
+       "ch": "UCC",
+       "n": 20
+      }
+     ]
+    }
+   ],
    "export": "Powerful Unleash Challenges",
    "tools": [
     [
@@ -747,6 +889,20 @@ window.ITRTG = {
     {
      "stat": "maxClones",
      "min": 500000
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "planetLevel",
+       "min": 50
+      },
+      {
+       "stat": "maxClones",
+       "min": 3000000
+      }
+     ]
     }
    ],
    "export": "Planet Multi Challenges",
@@ -798,6 +954,16 @@ window.ITRTG = {
     {
      "stat": "bsTotal",
      "min": 100000
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "bsTotal",
+       "min": 200000
+      }
+     ]
     }
    ],
    "export": "1K Clones Black Hole Ch.s",
@@ -1019,6 +1185,25 @@ window.ITRTG = {
      "max": 3
     }
    ],
+   "statHint": [
+    {
+     "to": 10,
+     "need": []
+    },
+    {
+     "label": "the 11th",
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 1000000000
+      },
+      {
+       "stat": "lightClones",
+       "min": 4000000
+      }
+     ]
+    }
+   ],
    "export": "Limited Clone v4 Challenges",
    "tools": [
     [
@@ -1058,6 +1243,46 @@ window.ITRTG = {
    "check": [
     {
      "note": "Holy ITRTG Book unlocked"
+    }
+   ],
+   "statHint": [
+    {
+     "to": 3,
+     "need": [
+      {
+       "stat": "bsTotal",
+       "min": 50000
+      },
+      {
+       "stat": "maxClones",
+       "min": 10000000
+      }
+     ]
+    },
+    {
+     "label": "the later ones",
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 200000000
+      },
+      {
+       "score": "RTI",
+       "min": 140
+      },
+      {
+       "stat": "perm:Space Dim",
+       "min": 1000000
+      },
+      {
+       "stat": "perm:Building Speed",
+       "min": 1000000
+      },
+      {
+       "stat": "perm:Divinity",
+       "min": 1000000
+      }
+     ]
     }
    ],
    "export": "Div Gen Challenges",
@@ -1185,6 +1410,29 @@ window.ITRTG = {
      "note": "Early SpaceDim ChP purchase"
     }
    ],
+   "statHint": [
+    {
+     "to": 3,
+     "need": []
+    },
+    {
+     "label": "the later ones",
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 200000000
+      },
+      {
+       "stat": "lightClones",
+       "min": 1500000
+      },
+      {
+       "score": "RTI",
+       "min": 140
+      }
+     ]
+    }
+   ],
    "export": "SpaceDim Accumulation Challenges",
    "tools": [
     [
@@ -1231,6 +1479,26 @@ window.ITRTG = {
      "min": 100000
     }
    ],
+   "statHint": [
+    {
+     "to": 10,
+     "need": [
+      {
+       "score": "RTI",
+       "min": 100
+      }
+     ]
+    },
+    {
+     "label": "the last ones",
+     "need": [
+      {
+       "score": "RTI",
+       "min": 120
+      }
+     ]
+    }
+   ],
    "export": "RTI Temp Level Challenges",
    "tools": [
     [
@@ -1271,6 +1539,28 @@ window.ITRTG = {
      "min": 20000000
     }
    ],
+   "statHint": [
+    {
+     "to": 3,
+     "need": [
+      {
+       "stat": "bsTotal",
+       "min": 1000000
+      },
+      {
+       "stat": "csTotal",
+       "min": 100000
+      },
+      {
+       "stat": "cc",
+       "min": 1000
+      }
+     ]
+    },
+    {
+     "need": []
+    }
+   ],
    "export": "Universes for Clones Challenges",
    "tools": [],
    "wikiInfo": {
@@ -1309,6 +1599,25 @@ window.ITRTG = {
     {
      "score": "RTI",
      "min": 50
+    }
+   ],
+   "statHint": [
+    {
+     "to": 1,
+     "need": []
+    },
+    {
+     "label": "the later ones",
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 150000000
+      },
+      {
+       "score": "RTI",
+       "min": 120
+      }
+     ]
     }
    ],
    "export": "Ultimate Stats Challenges",
@@ -1434,6 +1743,20 @@ window.ITRTG = {
      "note": "DivGen 100k/100k/100k (or a prior SDGC)"
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "UfCC",
+       "n": 25
+      },
+      {
+       "score": "RTI",
+       "min": 147
+      }
+     ]
+    }
+   ],
    "export": "Super Divinity Generator Challenges",
    "tools": [],
    "wikiInfo": {
@@ -1467,6 +1790,16 @@ window.ITRTG = {
     {
      "stat": "maxClones",
      "min": 250000000
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 500000000
+      }
+     ]
     }
    ],
    "export": "Base Speed Challenges",
@@ -1646,6 +1979,20 @@ window.ITRTG = {
      "n": 50
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 300000000
+      },
+      {
+       "stat": "planetLevel",
+       "min": 100
+      }
+     ]
+    }
+   ],
    "export": "Powersurge Challenges",
    "tools": [
     [
@@ -1762,6 +2109,20 @@ window.ITRTG = {
     {
      "stat": "maxClones",
      "min": 100000000
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "SDGC",
+       "n": 1
+      },
+      {
+       "ch": "BCC",
+       "n": 11
+      }
+     ]
     }
    ],
    "export": "Powerful Worker Challenges",
@@ -1998,6 +2359,42 @@ window.ITRTG = {
      "min": 1
     }
    ],
+   "statHint": [
+    {
+     "to": 10,
+     "need": [
+      {
+       "ch": "DRC",
+       "n": 25
+      },
+      {
+       "stat": "planetLevel",
+       "min": 50
+      }
+     ]
+    },
+    {
+     "label": "the second half",
+     "need": [
+      {
+       "ch": "UBC",
+       "n": 50
+      },
+      {
+       "score": "RTI",
+       "min": 100
+      },
+      {
+       "stat": "bsTotal",
+       "min": 300000
+      },
+      {
+       "stat": "maxClones",
+       "min": 100000000
+      }
+     ]
+    }
+   ],
    "export": "Ultimate Gods Challenges",
    "tools": [
     [
@@ -2088,6 +2485,20 @@ window.ITRTG = {
      "n": 2
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "DRC",
+       "n": 25
+      },
+      {
+       "stat": "totalMight",
+       "min": 100000
+      }
+     ]
+    }
+   ],
    "export": "1000 Clones Challenges",
    "tools": [],
    "wikiInfo": {
@@ -2128,6 +2539,24 @@ window.ITRTG = {
      "n": 20
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "cc",
+       "min": 200
+      },
+      {
+       "stat": "csTotal",
+       "min": 30000
+      },
+      {
+       "stat": "pbaal",
+       "min": 20
+      }
+     ]
+    }
+   ],
    "export": "No Training Challenges",
    "tools": [],
    "wikiInfo": {
@@ -2163,6 +2592,20 @@ window.ITRTG = {
     {
      "stat": "maxClones",
      "min": 10000000
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "petGrowth",
+       "min": 5000000
+      },
+      {
+       "stat": "bsGPCP",
+       "min": 200000
+      }
+     ]
     }
    ],
    "export": "One CC Challenges",
@@ -2205,6 +2648,42 @@ window.ITRTG = {
      "n": 1
     }
    ],
+   "statHint": [
+    {
+     "to": 20,
+     "need": [
+      {
+       "stat": "bsTotal",
+       "min": 50000
+      },
+      {
+       "stat": "maxClones",
+       "min": 15000000
+      },
+      {
+       "stat": "csTotal",
+       "min": 10000
+      },
+      {
+       "stat": "planetLevel",
+       "min": 50
+      }
+     ]
+    },
+    {
+     "label": "the extra 5 after UCC",
+     "need": [
+      {
+       "ch": "UBC",
+       "n": 50
+      },
+      {
+       "stat": "gpBank",
+       "min": 5000
+      }
+     ]
+    }
+   ],
    "export": "No Rebirth Challenges",
    "tools": [],
    "wikiInfo": {
@@ -2240,6 +2719,20 @@ window.ITRTG = {
     {
      "stat": "pbaal",
      "min": 5
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "DRC",
+       "n": 25
+      },
+      {
+       "stat": "planetLevel",
+       "min": 50
+      }
+     ]
     }
    ],
    "export": "P. Baal Challenges",
@@ -2332,6 +2825,25 @@ window.ITRTG = {
      "note": "Crystal Sacrifice ChP purchase"
     }
    ],
+   "statHint": [
+    {
+     "to": 12,
+     "need": []
+    },
+    {
+     "label": "the second half",
+     "need": [
+      {
+       "ch": "UMC",
+       "n": 1
+      },
+      {
+       "ch": "1KBHC",
+       "n": 1
+      }
+     ]
+    }
+   ],
    "export": "No Rebirth CP Challenges",
    "tools": [
     [
@@ -2415,6 +2927,20 @@ window.ITRTG = {
      "n": 10
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "UfCC",
+       "n": 25
+      },
+      {
+       "ch": "UBC",
+       "n": 50
+      }
+     ]
+    }
+   ],
    "export": "Clone Creator Challenges",
    "tools": [],
    "wikiInfo": {
@@ -2463,6 +2989,20 @@ window.ITRTG = {
     {
      "ch": "1KBHC",
      "n": 20
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "petGrowth",
+       "min": 50000000
+      },
+      {
+       "stat": "lightClones",
+       "min": 5000000
+      }
+     ]
     }
    ],
    "export": "Limited Clone No Rebirth Challenges",
@@ -2606,6 +3146,21 @@ window.ITRTG = {
      "n": 5
     }
    ],
+   "statHint": [
+    {
+     "to": 2,
+     "need": []
+    },
+    {
+     "label": "after the first couple",
+     "need": [
+      {
+       "ch": "UBC",
+       "n": 50
+      }
+     ]
+    }
+   ],
    "export": "Patreon Gods Challenges",
    "tools": [
     [
@@ -2643,6 +3198,16 @@ window.ITRTG = {
     "5": "UCC unlock"
    },
    "check": [],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "DRC",
+       "n": 25
+      }
+     ]
+    }
+   ],
    "export": "Clone Buildup Challenges",
    "tools": [
     [
@@ -2726,6 +3291,16 @@ window.ITRTG = {
      "note": "Defeat PEv4"
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 10000000
+      }
+     ]
+    }
+   ],
    "export": "Overflow Challenges",
    "tools": [
     [
@@ -2763,6 +3338,24 @@ window.ITRTG = {
     {
      "stat": "pets",
      "min": 50
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "PGC",
+       "n": 25
+      },
+      {
+       "ch": "UMC",
+       "n": 1
+      },
+      {
+       "ch": "UOC",
+       "n": 1
+      }
+     ]
     }
    ],
    "export": "Total Growth Challenges",
@@ -2803,6 +3396,21 @@ window.ITRTG = {
     {
      "ch": "UUC",
      "n": 45
+    }
+   ],
+   "statHint": [
+    {
+     "to": 3,
+     "need": []
+    },
+    {
+     "label": "going deeper",
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 1000000000
+      }
+     ]
     }
    ],
    "export": "Ultimate Being V1 Challenges",
@@ -3108,6 +3716,28 @@ window.ITRTG = {
      "note": "UUC in < 1 day"
     }
    ],
+   "statHint": [
+    {
+     "to": 1,
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 2000000
+      },
+      {
+       "stat": "bsTotal",
+       "min": 10000
+      },
+      {
+       "stat": "csTotal",
+       "min": 3000
+      }
+     ]
+    },
+    {
+     "need": []
+    }
+   ],
    "export": "Day Universe Challenge",
    "tools": [
     [
@@ -3153,6 +3783,25 @@ window.ITRTG = {
     "4": "Every 6-12 months for new highscore"
    },
    "check": [],
+   "statHint": [
+    {
+     "to": 1,
+     "need": []
+    },
+    {
+     "label": "capping the score",
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 125000000
+      },
+      {
+       "stat": "lightClones",
+       "min": 800000
+      }
+     ]
+    }
+   ],
    "export": "Day Pet Challenge",
    "tools": [],
    "wikiInfo": {
@@ -3190,6 +3839,30 @@ window.ITRTG = {
     "2": "1st - mightruns only"
    },
    "check": [],
+   "statHint": [
+    {
+     "to": 1,
+     "need": [
+      {
+       "ch": "DRC",
+       "n": 25
+      }
+     ]
+    },
+    {
+     "label": "the second run",
+     "need": [
+      {
+       "ch": "1KC",
+       "n": 40
+      },
+      {
+       "ch": "CBC",
+       "n": 25
+      }
+     ]
+    }
+   ],
    "export": "Day Might Challenge",
    "tools": [
     [
@@ -3235,6 +3908,25 @@ window.ITRTG = {
     "9": "Every 6-8 months"
    },
    "check": [],
+   "statHint": [
+    {
+     "to": 1,
+     "need": []
+    },
+    {
+     "label": "a higher score",
+     "need": [
+      {
+       "stat": "cc",
+       "min": 200
+      },
+      {
+       "stat": "csTotal",
+       "min": 5000
+      }
+     ]
+    }
+   ],
    "export": "Day No Divinity Challenge",
    "tools": [
     [
@@ -3287,6 +3979,20 @@ window.ITRTG = {
     {
      "ch": "NRC",
      "n": 1
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "ch": "UBC",
+       "n": 50
+      },
+      {
+       "stat": "maxClones",
+       "min": 75000000
+      }
+     ]
     }
    ],
    "export": "Day No Rebirth Challenge",
@@ -3486,6 +4192,38 @@ window.ITRTG = {
     {
      "score": "DBC",
      "min": 10
+    }
+   ],
+   "statHint": [
+    {
+     "to": 99,
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 10000000
+      }
+     ]
+    },
+    {
+     "label": "v100+",
+     "need": [
+      {
+       "ch": "UBC",
+       "n": 50
+      },
+      {
+       "stat": "maxClones",
+       "min": 40000000
+      },
+      {
+       "stat": "bsTotal",
+       "min": 150000
+      },
+      {
+       "stat": "petGrowth",
+       "min": 2000000
+      }
+     ]
     }
    ],
    "export": "Road to Infinity",
@@ -3739,6 +4477,16 @@ window.ITRTG = {
      "n": 20
     }
    ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "maxClones",
+       "min": 100000000
+      }
+     ]
+    }
+   ],
    "export": null,
    "tools": [],
    "wikiInfo": {
@@ -3831,6 +4579,16 @@ window.ITRTG = {
     {
      "ch": "NDMC",
      "n": 21
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "csGP",
+       "min": 1000000
+      }
+     ]
     }
    ],
    "export": null,
