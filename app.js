@@ -929,6 +929,7 @@
         petGrowth: "total pet growth", chp: "ChP", bsTotal: "Building Speed %", csGP: "Creation Speed % from GP", bsGP: "Building Speed % from GP",
         pbaal: "P.Baal version", rtiPermMin: "lowest RTI perm level", v4Defeated: "ITRTGv4 defeated", v4Hours: "fastest ITRTGv4 (hours)" };
       if (k.stat === "v4Defeated") return "Defeat ITRTGv4";
+      if (k.stat === "planetLevel") return `Planet level ${fmt(k.min)}`;
       if (k.max != null) return `${names[k.stat] || k.stat} < ${k.max}`;
       return `${fmt(k.min)} ${names[k.stat] || k.stat}`;
     }
@@ -940,6 +941,7 @@
     if (!imp) return "";
     if (k.ch) return imp.done[k.ch] != null ? `have ${imp.done[k.ch]}` : "";
     if (k.score) return imp.scores[k.score] != null ? `best ${fmt(imp.scores[k.score])}` : "not played";
+    if (k.stat === "planetLevel") return imp.stats.planetLevel == null ? "known once you've done a UUC or DBC" : `yours is ${imp.stats.planetLevelExact ? "" : "at least "}${fmt(imp.stats.planetLevel)}`;
     if (k.stat) { const v = imp.stats[k.stat]; if (v == null) return ""; if (k.stat === "v4Hours") return `best ${v.toFixed(2)}h`; return k.stat === "v4Defeated" ? "" : `have ${fmt(v)}`; }
     if (k.any) return k.any.map(haveText).filter(Boolean).join(", ");
     return "can't tell from the export";

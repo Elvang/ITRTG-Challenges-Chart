@@ -13,6 +13,7 @@
 //    check       : unlock conditions used by the stats import:
 //                   {ch:"DRC", n:5}          5 DRC completions
 //                   {stat:"maxClones", min}  a stat from the export (see app.js STAT_PARSERS)
+//                   {stat:"planetLevel", min:5}  worked out by stats-parser.js (UUC, DBC, ChP levels)
 //                   {score:"RTI", min:140}   a day-challenge best score
 //                   {note:"text"}            can't be checked from the export
 //                   {any:[...]}              any one of these
@@ -267,7 +268,8 @@ window.ITRTG = {
    },
    "check": [
     {
-     "note": "Planet level 5"
+     "stat": "planetLevel",
+     "min": 5
     }
    ],
    "statHint": [
@@ -3666,7 +3668,8 @@ window.ITRTG = {
      "note": "DRC in < 1 day"
     },
     {
-     "note": "Planet level 5"
+     "stat": "planetLevel",
+     "min": 5
     }
    ],
    "export": "Day Baal Challenge",
