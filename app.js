@@ -583,8 +583,21 @@
   // and counter slide in from the edges so they stay on screen while the bar is wider than the view.
   const STICKY_H = 34, GROW_MS = 180;
   let stickyGroupKey = null, pinnedSrc = null, growFrom = 1, growT0 = 0, growRaf = 0;
+  // Screen-px left/right padding that keeps a full-width bar's label and counter on screen,
+  // as long as the bar leaves room for them.
+  function edgePads(L0, W0) {
+    const vw = vp.clientWidth, room = Math.max(0, W0 - 320);
+    let padL = Math.max(14, 14 - L0), padR = Math.max(14, L0 + W0 - vw + 14);
+    if (padL + padR > room + 28) { const f = (room + 28) / (padL + padR); padL *= f; padR *= f; }
+    return [Math.max(14, padL), Math.max(14, padR)];
+  }
   function updateSticky(animate) {
     const lay = layouts.road;
+    // the real category bars get the same treatment (padding is in world units there)
+    if (view === "road" && lay) {
+      const L0 = cam.x + lay.barX * cam.k, [pl, pr] = edgePads(L0, lay.barW * cam.k);
+      for (const b of L.road.querySelectorAll(".group-bar.toggle")) { b.style.paddingLeft = (pl / cam.k) + "px"; b.style.paddingRight = (pr / cam.k) + "px"; }
+    }
     const on = view === "road" && lay && cam.y + lay.hdrY * cam.k < 0;
     sticky.hidden = !on;
     const hideGroup = () => { stickyGroup.hidden = true; stickyGroupKey = null; if (pinnedSrc) { pinnedSrc.classList.remove("pinned-src"); pinnedSrc = null; } };
@@ -604,7 +617,7 @@
     if (!src) { hideGroup(); return; }
     // the real bar hides while its copy is pinned, so no edge of it shows around the copy
     if (pinnedSrc !== src) { if (pinnedSrc) pinnedSrc.classList.remove("pinned-src"); src.classList.add("pinned-src"); pinnedSrc = src; }
-    const sig = src.outerHTML.length + src.className;
+    const sig = src.className + src.innerHTML.length;   // not outerHTML: its padding changes while panning
     if (stickyGroupKey !== g.t) {
       growFrom = Math.min(2, Math.max(0.4, cam.k)); growT0 = performance.now();   // start at the real bar's size
       cancelAnimationFrame(growRaf);
@@ -626,17 +639,14 @@
     if (!bar || stickyGroup.hidden) return;
     const t = Math.min(1, (performance.now() - growT0) / GROW_MS), e = 1 - Math.pow(1 - t, 3);
     const sc = growFrom + (1 - growFrom) * e;                  // current scale, eases to 1
-    const L0 = cam.x + lay.barX * cam.k, W0 = lay.barW * cam.k, vw = vp.clientWidth;
-    // keep the label and the counter on screen, as long as the bar leaves room for them
-    const room = Math.max(0, W0 - 320);
-    let padL = Math.max(14, 14 - L0), padR = Math.max(14, L0 + W0 - vw + 14);
-    if (padL + padR > room + 28) { const f = (room + 28) / (padL + padR); padL *= f; padR *= f; }
+    const L0 = cam.x + lay.barX * cam.k, W0 = lay.barW * cam.k;
+    const [padL, padR] = edgePads(L0, W0);   // keep the label and the counter on screen
     bar.style.left = L0 + "px";
     bar.style.top = stickyGroup.dataset.push + "px";
     bar.style.width = (W0 / sc) + "px";
     bar.style.transform = `scale(${sc})`;
-    bar.style.paddingLeft = (Math.max(14, padL) / sc) + "px";
-    bar.style.paddingRight = (Math.max(14, padR) / sc) + "px";
+    bar.style.paddingLeft = (padL / sc) + "px";
+    bar.style.paddingRight = (padR / sc) + "px";
   }
   const clampK = k => Math.min(2.5, Math.max(0.12, k));
   function fitWidth(animate) {
