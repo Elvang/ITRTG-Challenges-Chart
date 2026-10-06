@@ -309,7 +309,8 @@
 
   // =====================================================================
   //  Recommended list (needs an import)
-  //  Only challenges the import shows as unlocked; one row each with the guide's next instruction.
+  //  Challenges the import shows as unlocked, plus ones whose unlock it can't confirm either way ("? check":
+  //  placed as if unlocked, with what to check in game). One row each with the guide's next instruction.
   //  Grouped by the guide's timing for the player's ChP (now / next band / later), then sorted by
   //  reward rating and guide stage. The Later group is dimmed and shows header-only boxes until expanded.
   //  Unlimited, Hard Mode and Root rows are hidden unless the toggle is on: the export can't tell whether
@@ -432,7 +433,7 @@
       frag.push(`<div class="rec-empty" style="left:${X0}px;top:${y}px;width:${FW}px">
         <h2>What can I do next?</h2>
         <p>Import your statistics export and this tab lists every challenge you can start or continue right now, with what the guide says to aim for. It's grouped by when the guide says to do each one for your ChP, then sorted by how useful the guide rates the reward.</p>
-        <p>Only challenges the import can confirm are unlocked are listed. Import again after you finish a batch to refresh it.</p>
+        <p>Challenges whose unlock the export can't confirm are listed too, marked "? check" with what to check in game. Import again after you finish a batch to refresh it.</p>
         <button type="button" class="btn primary" id="rec-import">Import stats</button></div>`);
       L.rec.innerHTML = frag.join("");
       layouts.rec = { pos, w: W, h: 400, mini: new Set(), later: new Set(), stretch: {} };
@@ -442,7 +443,7 @@
     const items = [];
     for (const c of CH) {
       const st = P.statusOf(c, imp);
-      if (!["ready", "progress", "count", "score"].includes(st.s)) continue;
+      if (!["ready", "maybe", "progress", "count", "score"].includes(st.s)) continue;
       if (st.s === "ready" && P.unlockState(c, imp) !== true) continue;
       const nx = recNext(c, st);
       if (!nx) continue;
@@ -465,7 +466,7 @@
     });
     items.sort((a, b) => a.tier - b.tier || (b.c.rewardRating || 0) - (a.c.rewardRating || 0) || a.nx.k - b.nx.k || CH.indexOf(a.c) - CH.indexOf(b.c));
     const chpTxt = imp.stats.chp != null ? fmt(imp.stats.chp) + " ChP" : "your ChP";
-    frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Grouped by when the guide says to do them at ${chpTxt}, then sorted by reward rating. Unlocks the export can't confirm are left out.</small>${nRepeat ? `<label class="rw-all rec-repeat"><input type="checkbox" id="rec-repeat"${recShowRepeat ? " checked" : ""}> Show Unlimited, Hard Mode and Root challenges (${nRepeat})</label>` : ""}</div>`);
+    frag.push(`<div class="tree-title" style="left:${X0}px;top:${y}px;width:${FW}px">Available now for ${esc(imp.player || "you")} · ${items.length} challenges<small>Grouped by when the guide says to do them at ${chpTxt}, then sorted by reward rating. "? check" rows are placed as if unlocked; the export can't confirm their unlock.</small>${nRepeat ? `<label class="rw-all rec-repeat"><input type="checkbox" id="rec-repeat"${recShowRepeat ? " checked" : ""}> Show Unlimited, Hard Mode and Root challenges (${nRepeat})</label>` : ""}</div>`);
     y += 62;
     const nxt = bandNow != null && D.bands[bandNow + 1] ? D.bands[bandNow + 1].label : "";
     const TIERS = [
@@ -515,6 +516,10 @@
           if (it.moved) { htag = `<span class="tag hint-up">Moved up: your stats look ready</span>`; hl = `<div class="hint ready">Meets the wiki's recommendation${forTxt}: ${it.hc.rows.map(hintText).join(" · ")}</div>`; }
           else htag = `<span class="tag hint-ok" title="Meets the wiki's recommended stats${forTxt}">✓ Wiki stats</span>`;
         }
+      }
+      if (st.s === "maybe") {
+        const unk = (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText);
+        hl = `<div class="hint maybe">? The export can't confirm this is unlocked${unk.length ? `. Check in game: ${esc(unk.join("; "))}` : ""}</div>` + hl;
       }
       frag.push(`<div class="rec-row${lat}" data-code="${c.code}" style="--c:${T[c.type].color};left:${rx}px;top:${ry}px;width:${ROWW}px;min-height:${narrow ? 0 : h}px">
         <div class="what">▶ ${esc(nx.txt)}</div>

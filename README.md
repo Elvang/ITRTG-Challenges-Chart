@@ -4,7 +4,7 @@ An interactive chart of the recommended challenge order for *Idling to Rule the 
 
 - **Roadmap**: when the community guide says to start each challenge, and when to come back for more.
 - **Unlock tree**: what you need to unlock each challenge, following the arrows backwards.
-- **Recommended**: after you import your stats, lists only the challenges you can start or continue right now, with what the guide says to aim for next. It's sorted by the guide's reward rating, then by stage. Challenges whose unlock the export can't confirm are left out.
+- **Recommended**: after you import your stats, lists only the challenges you can start or continue right now, with what the guide says to aim for next. It's sorted by the guide's reward rating, then by stage. Challenges whose unlock the export can't confirm are listed where they'd go if unlocked, marked "? check" with what to check in game.
 - **Rewards**: after you import your stats, adds up the rewards from every challenge you've done, grouped by what they boost (planet level, might, pets, crystals…). Hover or tap a card to see which challenges it comes from and how far each is from its max.
 - **Search**: type a code or a name (`UBC`, `pet`, `crystal`). The tree view highlights the whole unlock path.
 - **Details**: click any box for the unlock requirements, reward, guide timing, wiki excerpts, and links to calculators.
