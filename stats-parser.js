@@ -12,35 +12,76 @@
   //   Engineering  "413.112 E+6"         exponent is a multiple of 3
   //   Roman        "4.131 VIII"          scientific with the exponent as a Roman numeral
   //   Fun          "413.112 Weakest"     engineering with a name per exponent (some names are two words)
-  const SMALL = { thousand: 3, million: 6, billion: 9, trillion: 12, quadrillion: 15, quintillion: 18,
-    sextillion: 21, septillion: 24, octillion: 27, nonillion: 30 };
-  const UNITS = [["", 0], ["un", 1], ["duo", 2], ["tre", 3], ["tres", 3], ["quattuor", 4], ["quin", 5], ["quinqua", 5],
-    ["sex", 6], ["ses", 6], ["se", 6], ["septen", 7], ["septem", 7], ["octo", 8], ["novem", 9], ["noven", 9]];
-  const TENS = [["dec", 1], ["vigint", 2], ["trigint", 3], ["quadragint", 4], ["quinquagint", 5], ["sexagint", 6],
-    ["septuagint", 7], ["octogint", 8], ["nonagint", 9]];
-  const WORDS = Object.assign({}, SMALL);
-  for (const [t, tv] of TENS) for (const [u, uv] of UNITS) WORDS[u + t + "illion"] = 3 * (10 * tv + uv) + 3;
-  WORDS["centillion"] = 303;
-  // Fun format: exponent of each name. Seen in exports so far; the full list is still to be mined from the game.
-  const FUN = { "Weakest": 6, "Weak": 9, "Not Weak": 12, "Better": 18, "Almost Strong": 21, "Strong": 27 };
-  const FUN_LC = {};
-  for (const k in FUN) FUN_LC[k.toLowerCase()] = FUN[k];
+  // Name lists as the game defines them for its number display (checked 2026-10-06). Item i is 10^(6 + 3i).
+  // Some of the game's names have stray trailing spaces; they're trimmed here.
+  const NUMBER_NAMES = [
+    "million", "billion", "trillion", "quadrillion", "quintillion", "sextillion", "septillion", "octillion",
+    "nonillion", "decillion", "undecillion", "duodecillion", "tredecillion", "quattuordecillion", "quindecillion",
+    "sexdecillion", "septendecillion", "octodecillion", "novemdecillion", "vigintillion", "unvigintillion",
+    "duovigintillion", "trevigintillion", "quattuorvigintillion", "quinvigintillion", "sexvigintillion",
+    "septenvigintillion", "octovigintillion", "novemvigintillion", "trigintillion", "untrigintillion",
+    "duotrigintillion", "trestrigintillion", "quattuortrigintillion", "quinquatrigintillion", "sextrigintillion",
+    "septentrigintillion", "octotrigintillion", "noventrigintillion", "quadragintillion", "unquadragintillion",
+    "duoquadragintillion", "trequadragintillion", "quattuorquadragintillion", "quinquadragintillion",
+    "sexquadragintillion", "septquadragintillion", "octoquadragintillion", "novemquadragintillion",
+    "quinquagintillion", "unquinquagintillion", "duoquinquagintillion", "trequinquagintillion",
+    "quattuorquinquagintillion", "quinquinquagintillion", "sexquinquagintillion", "septquinquagintillion",
+    "octoquinquagintillion", "novemquinquagintillion", "sexagintillion", "unsexagintillion", "duosexagintillion",
+    "tresexagintillion", "quattuorsexagintillion", "quinsexagintillion", "sexsexagintillion", "septsexagintillion",
+    "octosexagintillion", "novemsexagintillion", "septuagintillion", "unseptuagintillion", "duoseptuagintillion",
+    "treseptuagintillion", "quattuorseptuagintillion", "quinseptuagintillion", "sexseptuagintillion",
+    "septseptuagintillion", "octoseptuagintillion", "novemseptuagintillion", "octogintillion", "unoctogintillion",
+    "duooctogintillion", "treoctogintillion", "quattuoroctogintillion", "quinoctogintillion", "sexoctogintillion",
+    "septoctogintillion", "octooctogintillion", "novemoctogintillion", "nonagintillion", "unnonagintillion",
+    "duononagintillion", "trenonagintillion", "quattuornonagintillion", "quinnonagintillion", "sexnonagintillion",
+    "septnonagintillion", "octononagintillion", "novemnonagintillion", "centillion", "uncentillion", "cendotillion",
+    "centretillion", "cenquattuortillion", "cenquintillion", "censextillion", "censeptentillion", "cenoctotillion",
+    "cennovemtillion", "cendecillion", "cenundecillion", "cendodecillion", "centredecillion", "cenquattuordecillion",
+    "cenquindecillion", "censexdecillion", "censeptendecillion", "cenoctodecillion", "cennovemdecillion",
+    "cenvigintillion", "cenunvigintillion", "cendovigintillion", "centrevigintillion", "cenquattuorvigintillion",
+    "cenquinvigintillion", "censexvigintillion", "censeptenvigintillion", "cenoctovigintillion",
+    "cennovemvigintillion", "centrigintillion", "cenuntrigintillion", "cendotrigintillion"
+  ];
+  const FUN_NAMES = [
+    "Weakest", "Weak", "Not Weak", "Average", "Better", "Almost Strong", "Cute", "Strong", "Powerful", "Supaaa",
+    "Hyperion", "Itztli", "Gaia", "Shu", "Suijin", "Gefion", "Hathor", "Pontus", "Diana", "Izanagi", "Nephthys",
+    "Cybele", "Artemis", "Eros", "Freya", "Poseidon", "Laima", "Athena", "Susano O", "Zeus", "Nyx", "Luna", "Jupiter",
+    "Odin", "Amaterasu", "Coatlicue", "Chronos", "Tyrant Overlord Baal", "Monster Queen", "Important", "Atom",
+    "Atomic", "Nuclear", "Albert", "Snail", "Turtle", "Mouse", "Elephant", "Bunny", "Bunny Girl", "Hidden", "Secret",
+    "Invisible", "Random", "Number", "Internet", "Game", "Hacker", "John Doe", "Player", "Planet Eater",
+    "Godly Tribunal", "Living Sun", "God Above All", "Missing Name", "Unbelievable", "Searching", "For", "The",
+    "Missing", "Name", "Found", "It", "It's", "ITRTG!", "Helpless", "Boring", "No Future", "Idling", "Nothing",
+    "Poor", "Hard", "Time", "Runs", "Away", "New Start", "Learning", "Improving", "Patience", "Results", "Good Job",
+    "Profit", "Happy", "End?", "Climate", "Thunder", "Tornado", "Doomsday", "Ragnarok", "Big Crunch", "Big Bang"
+  ];
+  // The game also has a FunNames2 list (an easter egg: "You want to improve nothing ? Click My Other Games ...").
+  // It's not used here: several of its words repeat at different exponents ("then", "Hyperion"), so they can't be read back.
+  const WORDS = {}, FUN = {};
+  NUMBER_NAMES.forEach((n, i) => { WORDS[n] = 6 + 3 * i; });
+  FUN_NAMES.forEach((n, i) => { FUN[n] = 6 + 3 * i; });
+  const FUN_BY_LENGTH = FUN_NAMES.slice().sort((x, y) => y.length - x.length);   // "Not Weak" before "Weak"
+  // Roman format: the game's RomanNumbers list, item i is 10^(i + 1). It's standard numerals up to CCCX except
+  // for typos the export will show as they are: 239 is "CCCCXXXIX" and 290-299 are "CCXCC" ... "CCXCCIX".
+  const ROMAN = {};
+  (function () {
+    const R = [[100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+    for (let n = 1; n <= 310; n++) {
+      let x = n, r = "";
+      for (const [v, sym] of R) while (x >= v) { r += sym; x -= v; }
+      ROMAN[r] = n;
+    }
+    ROMAN["CCCCXXXIX"] = 239;
+    ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"].forEach((u, i) => { ROMAN["CCXCC" + u] = 290 + i; });
+  })();
 
   const reEsc = x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  // Suffix after the number: E notation, a word name, a Roman numeral or a Fun name (longest names first,
-  // so "Not Weak" wins over "Weak"). Roman must be followed by a non-letter so it can't eat the start of a word.
+  // Suffix after the number: E notation, a word name, a Fun name or a Roman numeral. Longest names first, and
+  // each must end at a non-letter, so "Weak" can't match the start of "Weakest" and "I" can't start "Idling".
   const SUFFIX = String.raw`\s*[eE]\s*[+-]?\d+|\s+(?:` +
-    [...Object.keys(WORDS), ...Object.keys(FUN)].sort((x, y) => y.length - x.length).map(reEsc).join("|") +
-    String.raw`)\b|\s+[IVXLCDM]+(?![A-Za-z])`;
+    [...NUMBER_NAMES, ...FUN_NAMES].sort((x, y) => y.length - x.length).map(reEsc).join("|") +
+    String.raw`|[IVXLCDM]+)(?![A-Za-z])`;
   // One number in any format, as a capture group. Used by every stat regex.
   const NUM = String.raw`(-?\d[\d,]*(?:\.\d+)?(?:` + SUFFIX + `)?)`;
-
-  function romanToInt(r) {
-    const V = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
-    let n = 0;
-    for (let i = 0; i < r.length; i++) { const v = V[r[i]], w = V[r[i + 1]] || 0; n += v < w ? -v : v; }
-    return n;
-  }
 
   // Read one number in any of the formats above, e.g. "1,234" "4.04979 E+8" "413.112 E+6" "15.920 billion"
   // "4.131 VIII" "413.112 Weakest" "∞" "53.23%". Returns null when a suffix is there but not recognized
@@ -51,19 +92,19 @@
     if (/^∞|^infinity/i.test(s)) return Infinity;
     const m = s.match(/^(-?\d[\d,]*(?:\.\d+)?)\s*(.*)$/);
     if (!m) return null;
-    let v = parseFloat(m[1].replace(/,/g, ""));
+    const v = parseFloat(m[1].replace(/,/g, ""));
     const rest = m[2];
+    const scale = e => v * Math.pow(10, e);
     let e;
-    if ((e = rest.match(/^[eE]\s*([+-]?\d+)/))) return v * Math.pow(10, parseInt(e[1], 10));
+    if ((e = rest.match(/^[eE]\s*([+-]?\d+)/))) return scale(parseInt(e[1], 10));
     if (!rest || /^[%(),:;/*+\-]/.test(rest)) return v;                 // plain number
-    const word = rest.match(/^([A-Za-z]+(?:\s+[A-Za-z]+)?)/);
+    for (const n of FUN_BY_LENGTH) if (rest.startsWith(n) && !/[A-Za-z]/.test(rest.charAt(n.length))) return scale(FUN[n]);
+    const word = rest.match(/^[A-Za-z]+/);
     if (word) {
-      const w2 = word[1].toLowerCase(), w1 = w2.split(/\s+/)[0];
-      if (w2 in FUN_LC) return v * Math.pow(10, FUN_LC[w2]);              // two-word Fun names first
-      if (w1 in WORDS) return v * Math.pow(10, WORDS[w1]);
-      if (w1 in FUN_LC) return v * Math.pow(10, FUN_LC[w1]);
-      if (/^[IVXLCDM]+$/.test(rest.match(/^[A-Za-z]+/)[0])) return v * Math.pow(10, romanToInt(rest.match(/^[A-Za-z]+/)[0]));
-      if (/^(hours?|days?|minutes?|seconds?|times?|levels?)\b/i.test(rest)) return v;   // units after a plain number
+      const w = word[0];
+      if (w.toLowerCase() in WORDS) return scale(WORDS[w.toLowerCase()]);
+      if (w in ROMAN) return scale(ROMAN[w]);
+      if (/^(hours?|days?|minutes?|seconds?|times?|levels?)$/i.test(w)) return v;   // units after a plain number
     }
     return null;
   }
@@ -74,7 +115,7 @@
     if (!big.length) return "plain";
     const has = re => big.some(x => re.test(x));
     if (has(/\d\s*e\s*[+-]?\d/i)) return big.some(x => /^-?\d{2,3}(?:\.\d+)?\s*e/i.test(x.replace(/,/g, ""))) ? "engineering" : "scientific";
-    if (has(/illion|thousand/i)) return "suffix";
+    if (has(/illion/i)) return "suffix";
     if (has(/\s[IVXLCDM]+$/)) return "roman";
     return "fun";
   }
