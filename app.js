@@ -1078,7 +1078,7 @@
     if (r.error) return r;
     store.set("itrtg.export", text);
     applyImport(r, true);
-    r.message = `Imported <b>${esc(r.player || "your stats")}</b>: ${r.found} challenge lines. ${summarize()}` +
+    r.message = `Imported <b>${esc(r.player || "your stats")}</b>${r.format && r.format !== "plain" ? ` (${r.format} numbers)` : ""}: ${r.found} challenge lines. ${summarize()}` +
       (r.unknown.length ? `<br><span class="muted">Not recognized (maybe a new challenge): ${esc(r.unknown.join("; "))}</span>` : "");
     return r;
   }
