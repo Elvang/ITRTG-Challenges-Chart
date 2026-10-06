@@ -50,8 +50,8 @@
     ["petGrowth", /^Total Pet growth:\s*(.+)$/m],
     ["chp", /^Challenge Points:\s*(.+)$/m],
     ["hmChp", /^Hard mode Challenge points:\s*(.+)$/mi],
-    ["bsTotal", /^Building Speed:\s*([^,(]+?)\s*%/m],
-    ["csTotal", /^Creating Speed:\s*([^,(]+?)\s*%/m],
+    ["bsTotal", /^Building Speed:[ \t]*([^%(\r\n]+?)\s*%/m],   // "5,437 %" (early game has commas) or "6.09 E+7 %"
+    ["csTotal", /^Creating Speed:[ \t]*([^%(\r\n]+?)\s*%/m],
     ["totalMight", /^Total Might:\s*(.+)$/m],
     ["gpBank", /^Available GP:\s*(.+)$/m],
     ["chpPlanet", /^Chp Planet Level:\s*(.+)$/mi],
