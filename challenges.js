@@ -38,7 +38,7 @@
 //  (https://creativecommons.org/licenses/by-sa/4.0/). Keep that licence on this text if you edit it.
 // =====================================================================
 window.ITRTG = {
- "updated": "2026-10-05",
+ "updated": "2026-10-06",
  "sources": {
   "guide": {
    "label": "ITRTG Challenge Guide",
@@ -428,7 +428,7 @@ window.ITRTG = {
     "The statistics multi reward was increased from 750,000 to 7,500,000 in game version 4.21.1445 (2024-01-26).",
     "The statistics multi reward increased to 25,000,000 some time later in 2024 (no changelog entry?)."
    ],
-   "wikiRev": "2026-07-11T06:02:36Z"
+   "wikiRev": "2026-10-05T14:26:03Z"
   },
   {
    "code": "BHC",
@@ -1718,13 +1718,16 @@ window.ITRTG = {
     ]
    ],
    "wikiInfo": {
-    "desc": "Build all types of monuments with upgrades (100/50) * (8 - tier (MS = tier 1, ToG = tier 7)) * (1 + challenges completed), for black holes it is 1/1 * (1 + challenges completed) instead.\nMonuments are much more expensive (250,000x build time increase to…",
+    "desc": "Build all types of monuments with upgrades. For each monument type (MS = tier 1, up to ToG = tier 7), you must build:\n• 100 * (8 - tier) * (1 + challenges completed) monuments\n• 50 * (8 - tier) * (1 + challenges completed) upgrades\nFor black holes it is (1 + challenges completed) monuments and upgrades instead.",
     "unlock": "Completed 10 UBHC.",
+    "restr": "Monuments are much more expensive (250,000x build time increase to monuments and 1,000,000x build time increase to upgrades, 10,000,000x cost increase to both) in this challenge but the divinity generator is unlocked by default.\nLucky Draws cannot be opened while in this challenge.\nDivinity cannot be purchased with God Power while in this challenge.",
     "rec": "A few people have reported completing the full series with under 1 billion shadow clones.",
-    "strat": "Did you remember Chakra Pills (and v2)?\nYou can't buy divinity with GP, nor can you double it with Lucky Draws.  Divinity Campaigns still work, so use those, after building up a large Divinity Generator.\nThe following table shows the amount of each monument/upgrade required to complete each challenge.\n{| class=\"wikitable mw-collapsible\"\n|-\n!Challenge #\n!Mighty Statue\n!Mystic Garden\n!Tomb of Gods\n!Everlasting Lighthouse\n!Godly Statue\n!Pyramid of Power\n!Temple of God\n!Black Hole\n|-\n|1\n|700/350\n|600/300\n|500/250…"
+    "strat": "Did you remember Chakra Pills (and v2)?\nYou can't buy divinity with GP, nor can you double it with Lucky Draws.  Divinity Campaigns still work, so use those, after building up a large Divinity Generator.\nThe following table shows the amount of each monument/upgrade required to complete each challenge.\n(see the table on the wiki)"
    },
-   "history": [],
-   "wikiRev": "2025-03-16T13:18:58Z"
+   "history": [
+    "The Expensive Monument Challenge was added in game version 3.91.1323 (2022-06-15)."
+   ],
+   "wikiRev": "2026-10-04T17:11:53Z"
   },
   {
    "code": "SDGC",
