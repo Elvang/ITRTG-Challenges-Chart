@@ -117,7 +117,7 @@
     { key: "uccGrowth", oneTime: true, group: "pets", label: "Base growth per pet from UCC 51+", fmt: "num", unit: "201 per UCC to each pet unlocked at the time", sources: [ { ch: "UCC", f: n => n > 50 ? 201 * (n - 50) : 0 } ] },
     { key: "uccBacon", oneTime: true, group: "pets", label: "Rebirth Bacon received from UCC 51+", fmt: "num", unit: "500 per UCC", sources: [ { ch: "UCC", f: n => n > 50 ? 500 * (n - 50) : 0 } ] },
     { key: "petStats", group: "pets", label: "Pet normal (non-dungeon) stats", fmt: "pct", sources: [ { ch: "TGC", f: per(2.5) } ] },
-    { key: "food", group: "pets", label: "Pet food efficiency", fmt: "pct", sources: [ { score: "DPC", f: s => s > 0 ? min(100, max(0, log2(s * 100))) : 0, maxS: 1.14e30 } ] },
+    { key: "food", group: "pets", label: "Pet food efficiency", fmt: "pct", sources: [ { score: "DPC", f: s => s >= 1.14e30 ? 100 : s > 1 ? min(100, log2(s)) : 0, maxS: 1.14e30 } ] },
     { key: "petStart", group: "pets", label: "Pet starting levels after rebirth", fmt: "num", sources: [ { ch: "PLC", f: per(20) } ] },
     { key: "petXP", group: "pets", label: "Pet XP from fighting clones", fmt: "pct", sources: [ { ch: "SPLC", f: per(5) } ] },
     { key: "classXP", group: "pets", label: "Class XP outside dungeons", fmt: "pct", sources: [ { ch: "CEC", f: per(2) } ] },

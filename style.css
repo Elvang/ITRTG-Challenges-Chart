@@ -179,6 +179,8 @@ a { color: var(--accent); }
 body.no-dim .track.is-done { opacity: .45; }
 body.no-dim .station.is-done, body.no-dim .repeat.is-done, body.no-dim .pill.is-done { opacity: 1; filter: none; }
 .box.collapsed { opacity: 0 !important; pointer-events: none; }
+/* a selected box that isn't in the current layout stays hidden (it has no position there) */
+.box.collapsed.hit { opacity: 0 !important; box-shadow: none; }
 .group-bar.toggle { cursor: pointer; user-select: none; }
 .group-bar.toggle:hover { filter: brightness(1.12); }
 .group-bar .chev { display: inline-block; width: 14px; font-size: 12px; transition: transform .2s; }

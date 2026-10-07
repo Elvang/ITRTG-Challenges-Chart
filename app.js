@@ -880,6 +880,20 @@
     const onScreen = lay.pos[code] && !(view === "road" && lay.hidden.has(code));
     if (view === "rewards") { const h = RW.querySelector(".rw-card.hit"); if (h && move) h.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
     if (onScreen && (move || isCovered(code))) centerOn(code);
+    if (view === "rec" && onScreen && /isn't on this tab/.test($("#toast").textContent)) $("#toast").hidden = true;
+    if (view === "rec" && !onScreen && move) toast(`${esc(code === "ROOT" ? "Root challenges" : code)} isn't on this tab: ${recAbsentReason(BY[code])}. Its details are in the panel.`, 5000);
+  }
+  // why a challenge has no row on the Recommended tab (mirrors the filters in layoutRec)
+  function recAbsentReason(c) {
+    if (!imp) return "import your stats to fill it";
+    const st = P.statusOf(c, imp);
+    if (st.s === "done") return c.type === "D" ? "your score already reaches the ChP cap" : "it's maxed";
+    if (st.s === "locked") return "your export shows it's still locked";
+    if (st.s === "ready" && P.unlockState(c, imp) !== true) return "the export can't confirm it's unlocked";
+    if (!["ready", "maybe", "progress", "count", "score"].includes(st.s)) return "the export doesn't list it";
+    if (!recNext(c, st)) return c.type === "D" ? "the guide's remaining steps are re-runs the export can't track" : "the guide has no step left for it that the export can track";
+    if (REPEAT_TYPES.has(c.type) && !recShowRepeat) return "Unlimited, Hard Mode and Root rows are hidden (tick the box under the title)";
+    return "it isn't listed";
   }
   function deselect() {
     selCode = null;
