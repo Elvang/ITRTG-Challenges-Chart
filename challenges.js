@@ -8,7 +8,8 @@
 //    requires    : [[code, arrow label], ...]  first = tree parent, rest = dashed links
 //    max, playstyle (Lazy/Moderate/Semi-active/Active), rewardRating (1-5, from the guide), notes
 //    (what each challenge rewards lives in rewards.js, not here)
-//    chp         : ChP per completion (from the guide)
+//    chp         : full-set ChP from the guide = chpEach x max after all UCC extras x 1.5 (set bonus); not for Unlimited
+//    chpEach     : ChP per completion (wiki "Challenge Points:" line)
 //    stages      : { step: "guide text" }  steps 0..10, see BANDS below
 //    check       : unlock conditions used by the stats import:
 //                   {ch:"DRC", n:5}          5 DRC completions
@@ -232,6 +233,7 @@ window.ITRTG = {
    "rewardRating": 1,
    "notes": "First time unlocks GP pet. The rest: speeding / speedfalling",
    "chp": 37,
+   "chpEach": 1,
    "stages": {
     "0": "Do 1 as the 2nd challenge",
     "3": "Rest"
@@ -268,6 +270,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Shouldn't take longer than 3h. Best done in speedruns <30 min",
    "chp": 82,
+   "chpEach": 1,
    "stages": {
     "0": "Not worth it early on!",
     "1": "1 for AAC unlock",
@@ -327,6 +330,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 240,
+   "chpEach": 4,
    "stages": {
     "1": "While easy, up to #35",
     "2": "Last 5"
@@ -390,6 +394,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": "After UBCs, all v4s, new RTI, for the most gains",
    "chp": 1260,
+   "chpEach": 30,
    "stages": {
     "1": "1 for BHC unlock",
     "3": "Climb for new pets, RTI permalevels. Or AAC Skip (100 UBCs)"
@@ -454,6 +459,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Spend GP for div",
    "chp": 120,
+   "chpEach": 2,
    "stages": {
     "1": "All"
    },
@@ -508,6 +514,7 @@ window.ITRTG = {
    "rewardRating": 5,
    "notes": "Train pets, optimal 1h item camps",
    "chp": 240,
+   "chpEach": 8,
    "stages": {
     "1": "After DRC, DMC and DNDC"
    },
@@ -570,6 +577,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 37,
+   "chpEach": 1,
    "stages": {
     "1": "All"
    },
@@ -619,6 +627,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "A more balanced growth floor will clear faster",
    "chp": 600,
+   "chpEach": 20,
    "stages": {
     "10": "All"
    },
@@ -658,6 +667,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Can be delayed for more crystal slots + ICU",
    "chp": 450,
+   "chpEach": 10,
    "stages": {
     "2": "A few",
     "3": "All"
@@ -722,6 +732,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": "Use DMC calc to optimize might/hr; want 1KBHC completed",
    "chp": 375,
+   "chpEach": 10,
    "stages": {
     "6": "All"
    },
@@ -785,6 +796,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 360,
+   "chpEach": 12,
    "stages": {
     "6": "All"
    },
@@ -830,6 +842,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 150,
+   "chpEach": 10,
    "stages": {
     "7": "Here"
    },
@@ -889,6 +902,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 900,
+   "chpEach": 10,
    "stages": {
     "3": "After NRC + UBV2C"
    },
@@ -953,6 +967,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Use pills",
    "chp": 1050,
+   "chpEach": 35,
    "stages": {
     "3": "1 for might",
     "4": "Rest"
@@ -1009,6 +1024,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": "Extra bonus for clearing the 11th",
    "chp": 150,
+   "chpEach": 10,
    "stages": {
     "2": "After 1KC"
    },
@@ -1057,6 +1073,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 150,
+   "chpEach": 20,
    "stages": {
     "6": "Hereish"
    },
@@ -1097,6 +1114,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Use liquids",
    "chp": 630,
+   "chpEach": 20,
    "stages": {
     "2": "First 9-10",
     "4": "Rest of them"
@@ -1139,6 +1157,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Use liquids and GGC spreadsheet next-ats",
    "chp": 780,
+   "chpEach": 20,
    "stages": {
     "4": "When easy; come back as you progress"
    },
@@ -1187,6 +1206,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Difficulty depends on Light Clones, RTI and v4 Mage attack",
    "chp": 600,
+   "chpEach": 40,
    "stages": {
     "9": "All. The weaker your dungeons, the later"
    },
@@ -1248,6 +1268,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 937,
+   "chpEach": 25,
    "stages": {
     "4": "When easy; come back as you progress"
    },
@@ -1334,6 +1355,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": null,
    "chp": 1350,
+   "chpEach": 30,
    "stages": {
     "5": "When you need a lazy challenge"
    },
@@ -1389,6 +1411,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 450,
+   "chpEach": 15,
    "stages": {
     "5": "Hereish"
    },
@@ -1428,6 +1451,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 750,
+   "chpEach": 20,
    "stages": {
     "6": "When easy; come back as you progress"
    },
@@ -1495,6 +1519,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 750,
+   "chpEach": 25,
    "stages": {
     "6": "First few",
     "7": "Rest"
@@ -1555,6 +1580,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 1125,
+   "chpEach": 30,
    "stages": {
     "7": "A few",
     "9": "The rest"
@@ -1617,6 +1643,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 750,
+   "chpEach": 20,
    "stages": {
     "3": "First time",
     "5": "When easy; come back as you progress"
@@ -1686,6 +1713,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "First one unlocks the Multiverse tab. Use liquids",
    "chp": 787,
+   "chpEach": 25,
    "stages": {
     "6": "Hereish"
    },
@@ -1726,6 +1754,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": "Reward weak until the finisher gives overcap",
    "chp": 1125,
+   "chpEach": 30,
    "stages": {
     "9": "When sub-24h (check compiled)"
    },
@@ -1769,6 +1798,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": null,
    "chp": 1050,
+   "chpEach": 35,
    "stages": {
     "9": "When easy; come back as you progress"
    },
@@ -1822,6 +1852,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Needs strong RTI and >500M clones for <24h",
    "chp": 937,
+   "chpEach": 25,
    "stages": {
     "8": "When short enough"
    },
@@ -1874,6 +1905,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Can be done over multiple rebirths",
    "chp": 750,
+   "chpEach": 25,
    "stages": {
     "4": "When easy; return with stronger crafters"
    },
@@ -1920,6 +1952,7 @@ window.ITRTG = {
    "rewardRating": 1,
    "notes": "Scales poorly midgame on; only worth it with start-of-RB GP",
    "chp": 750,
+   "chpEach": 20,
    "stages": {
     "5": "All"
    },
@@ -1960,6 +1993,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Balanced around stable P.Baal v150; several days each",
    "chp": 900,
+   "chpEach": 20,
    "stages": {
     "8": "First 5-10",
     "9": "All"
@@ -2009,6 +2043,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Longer challenge for lategame",
    "chp": 450,
+   "chpEach": 15,
    "stages": {
     "7": "Hereish"
    },
@@ -2065,6 +2100,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 150,
+   "chpEach": 10,
    "stages": {
     "6": "All"
    },
@@ -2105,6 +2141,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "DivGen limited to 100k levels per offline calc",
    "chp": 225,
+   "chpEach": 15,
    "stages": {
     "7": "All"
    },
@@ -2141,6 +2178,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": null,
    "chp": 600,
+   "chpEach": 20,
    "stages": {
     "9": "All"
    },
@@ -2192,6 +2230,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": "Improved next-at for 99 GP. 1.5-3h runs make this fast",
    "chp": 450,
+   "chpEach": 10,
    "stages": {
     "0": "Do 1 as the 1st challenge",
     "1": "Top priority"
@@ -2228,6 +2267,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": null,
    "chp": 372,
+   "chpEach": 8,
    "stages": {
     "2": "All"
    },
@@ -2268,6 +2308,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 780,
+   "chpEach": 20,
    "stages": {
     "2": "First 12",
     "5": "Next 6",
@@ -2314,6 +2355,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": "Clones on non-BB monsters for div buy",
    "chp": 450,
+   "chpEach": 15,
    "stages": {
     "4": "All"
    },
@@ -2349,6 +2391,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Import next-ats each rebirth",
    "chp": 900,
+   "chpEach": 20,
    "stages": {
     "3": "All"
    },
@@ -2389,6 +2432,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 450,
+   "chpEach": 15,
    "stages": {
     "6": "Whenever you like"
    },
@@ -2470,6 +2514,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 750,
+   "chpEach": 20,
    "stages": {
     "7": "All"
    },
@@ -2515,6 +2560,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": null,
    "chp": 750,
+   "chpEach": 10,
    "stages": {
     "2": "All"
    },
@@ -2569,6 +2615,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 600,
+   "chpEach": 20,
    "stages": {
     "4": "After MQC"
    },
@@ -2624,6 +2671,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 562,
+   "chpEach": 15,
    "stages": {
     "6": "When you're willing"
    },
@@ -2677,6 +2725,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 1500,
+   "chpEach": 40,
    "stages": {
     "3": "All (round 1)",
     "6": "Post-UCC round 2"
@@ -2749,6 +2798,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 1500,
+   "chpEach": 20,
    "stages": {
     "2": "While easy",
     "3": "Rest (round 1)",
@@ -2806,6 +2856,7 @@ window.ITRTG = {
    "rewardRating": 4,
    "notes": "Kill off D2 teams in D3-10 for more multi overnight",
    "chp": 1200,
+   "chpEach": 40,
    "stages": {
     "4": "All"
    },
@@ -2868,6 +2919,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": "Only CP from Crystal Sacrifice counts",
    "chp": 2250,
+   "chpEach": 60,
    "stages": {
     "7": "When climbing gods is easy"
    },
@@ -2942,6 +2994,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 486,
+   "chpEach": 12,
    "stages": {
     "2": "First",
     "3": "The rest"
@@ -2983,6 +3036,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": "Easier with more creation count",
    "chp": 450,
+   "chpEach": 15,
    "stages": {
     "5": "All"
    },
@@ -3043,6 +3097,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 750,
+   "chpEach": 50,
    "stages": {
     "10": "All"
    },
@@ -3107,6 +3162,7 @@ window.ITRTG = {
    "rewardRating": 3,
    "notes": null,
    "chp": 1500,
+   "chpEach": 50,
    "stages": {
     "7": "All"
    },
@@ -3144,6 +3200,7 @@ window.ITRTG = {
    "rewardRating": 5,
    "notes": "Buy 30-50k clones, instant clones to softcap, GP into BS or div; 1-3h runs get you under 24h",
    "chp": 1875,
+   "chpEach": 25,
    "stages": {
     "0": "Do 1 as the 3rd challenge (Crystal Factory; might unleash buffs)",
     "3": "Rest of the first 50 (UBC mines)",
@@ -3202,6 +3259,7 @@ window.ITRTG = {
    "rewardRating": 5,
    "notes": null,
    "chp": 1125,
+   "chpEach": 30,
    "stages": {
     "5": "When you're willing"
    },
@@ -3257,6 +3315,7 @@ window.ITRTG = {
    "rewardRating": 2,
    "notes": null,
    "chp": 900,
+   "chpEach": 20,
    "stages": {
     "0": "Not worth it early; easy with strong pets",
     "3": "Some pre-UBC are alright",
@@ -3313,6 +3372,7 @@ window.ITRTG = {
    "rewardRating": 1,
    "notes": "2nd UAC for Turtle evo + pet token; generally not worth doing",
    "chp": 150,
+   "chpEach": 50,
    "stages": {
     "5": "Whenever, or never"
    },
@@ -3348,7 +3408,7 @@ window.ITRTG = {
    "playstyle": "Lazy",
    "rewardRating": 4,
    "notes": "Rewards are powerful - don't ignore them",
-   "chp": "1",
+   "chpEach": 1,
    "stages": {
     "5": "When schedule doesn't fit others; don't neglect!"
    },
@@ -3396,7 +3456,7 @@ window.ITRTG = {
    "playstyle": "Lazy",
    "rewardRating": 3,
    "notes": "~+10% growth income while in challenge; good for lazy pets",
-   "chp": "10",
+   "chpEach": 10,
    "stages": {
     "4": "When schedule permits; keep < 24h"
    },
@@ -3454,7 +3514,7 @@ window.ITRTG = {
    "playstyle": "Semi-active",
    "rewardRating": 4,
    "notes": "~1-5 early, 5-15 mid, 16-20 late, 21+ endgame",
-   "chp": "25",
+   "chpEach": 25,
    "stages": {
     "4": "When easy; come back as you progress"
    },
@@ -3511,7 +3571,7 @@ window.ITRTG = {
    "playstyle": "Lazy",
    "rewardRating": 3,
    "notes": "First completion unlocks MV RB multi, growth, GP",
-   "chp": "10",
+   "chpEach": 10,
    "stages": {
     "9": "When you feel like it"
    },
@@ -3557,7 +3617,7 @@ window.ITRTG = {
    "playstyle": "Lazy",
    "rewardRating": 2,
    "notes": "Bonus GP applies after might unlock; great use of div doublers",
-   "chp": "30",
+   "chpEach": 30,
    "stages": {
     "3": "When easy; come back as you progress"
    },
@@ -3630,7 +3690,7 @@ window.ITRTG = {
    "playstyle": "Active",
    "rewardRating": 4,
    "notes": "Capped at your highest P.Baal",
-   "chp": "45",
+   "chpEach": 45,
    "stages": {
     "6": "First 20 ASAP",
     "8": "When you feel like it"
@@ -4777,6 +4837,7 @@ window.ITRTG = {
    "rewardRating": null,
    "notes": "Added in 4.65.1705 (2026-09-21). Not in the community guide yet. Unlock from the in-game text (\"Have dojo unlocked and upgraded at least one element\"), read as any one Dojo upgrade; the wiki doesn't list it yet.",
    "chp": null,
+   "chpEach": 20,
    "stages": {},
    "check": [
     {

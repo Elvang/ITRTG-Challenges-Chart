@@ -383,6 +383,21 @@
     const inBand = open.filter(o => D.bands.indexOf(bandOfStep(o.k)) <= now);
     return inBand.length ? inBand[inBand.length - 1] : open[0];
   }
+  // "At a glance" ChP line: per completion, then the full set (+50% set bonus).
+  // The guide's chp total counts every UCC extra completion, so with an import the set total
+  // uses the player's current cap and the guide's number is shown as the most it can reach.
+  function chpLine(c) {
+    if (!c.chpEach || c.type === "D") return "";            // day challenges: the ChP cap row covers it
+    const each = `<b>${c.chpEach}</b> each`;
+    if (c.type === "U") return `<dt>ChP</dt><dd>${each} <span class="muted">(no cap)</span></dd>`;
+    const cap = imp && imp.cap[c.code] != null && imp.cap[c.code] < 9999 ? imp.cap[c.code] : null;
+    const base = Math.floor(c.chpEach * (parseInt(c.max, 10) || 0) * 1.5), full = c.chp || base;
+    if (cap == null) return `<dt>ChP</dt><dd>${each} · ${fmt(full)} for the full set <span class="muted">(+50% set bonus${full > base ? ", with all UCC extras" : ""})</span></dd>`;
+    const set = Math.floor(c.chpEach * cap * 1.5), done = imp.done[c.code] || 0;
+    const got = done >= cap ? set : c.chpEach * done;
+    const more = c.chp && c.chp > set ? `<br><span class="muted">${fmt(c.chp)} with all UCC extras</span>` : "";
+    return `<dt>ChP</dt><dd>${each} · <b>${fmt(got)}</b> / ${fmt(set)} <span class="muted">(set +50%)</span>${more}</dd>`;
+  }
   // statHint: the wiki's recommended stats the export can check (see challenges.js).
   // Picks the hint for the next completion and returns { hint, rows: [{k, ok, have}], verdict: "ready" | "short" | null }.
   const HINT_LABEL = { maxClones: "clones", lightClones: "light clones", cc: "Creation Count", csTotal: "% CS", bsTotal: "% BS",
@@ -1030,7 +1045,7 @@
     parts.push(`<section><h3>At a glance</h3><dl>
       <dt>Unlock</dt><dd>${esc(c.unlock.join("; "))}</dd>
       <dt>${c.scoreCap ? "ChP cap" : "Max"}</dt><dd>${c.scoreCap ? `${esc(c.scoreCap.label)} (${c.scoreCap.chp} ChP)` : esc(c.max)}</dd>
-      ${c.chp ? `<dt>ChP each</dt><dd>${esc(c.chp)}</dd>` : ""}
+      ${chpLine(c)}
       ${c.playstyle ? `<dt>Playstyle</dt><dd>${esc(c.playstyle)}</dd>` : ""}
       ${c.rewardRating ? `<dt>Reward rating</dt><dd><span class="stars" title="How useful the guide rates the reward">${stars(c.rewardRating)}</span> <span class="muted">(guide)</span></dd>` : ""}
     </dl></section>`);
