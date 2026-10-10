@@ -191,6 +191,22 @@
       const raw = m[3].trim(), v = /^true$/i.test(raw) ? 1 : /^false$/i.test(raw) ? 0 : parseNumber(raw);
       if (v != null && !isNaN(v)) res.stats[m[1].toLowerCase() + ":" + m[2].trim()] = v;
     }
+    // Dojo upgrades ("Pet water: 73%"), as "dojo:<name>", from the Dojo section up to the next section header.
+    // All 0% until something is bought (a 2023 save exported with today's game shows the section at 0%).
+    // CEC unlock (in game: "Have dojo unlocked and upgraded at least one element", read as: at least one Dojo
+    // upgrade of any kind bought): dojoAnyMax is the highest of every Dojo line.
+    const dojoAt = text.search(/^Dojo\s*$/m);
+    if (dojoAt >= 0) {
+      for (const line of text.slice(dojoAt).split(/\r?\n/).slice(1)) {
+        if (!line.trim()) continue;
+        const m = line.match(/^(.+?):\s*(.+)$/);
+        if (!m) break;                                   // next section header
+        const v = parseNumber(m[2]);
+        if (v != null && !isNaN(v)) res.stats["dojo:" + m[1].trim()] = v;
+      }
+      const all = Object.keys(res.stats).filter(k => k.startsWith("dojo:")).map(k => res.stats[k]);
+      if (all.length) res.stats.dojoAnyMax = Math.max(...all);
+    }
     // NRDC unlock: top 36 pets' dungeon levels > 450. The export gives the top 50's total. The best 36 of those
     // average at least as much as all 50, so total × 36 / 50 is a floor for the top 36 (a low one when a few pets
     // hold most of the levels, but never too high). With 36 pets or fewer the total is the top 36 exactly.

@@ -4768,18 +4768,22 @@ window.ITRTG = {
    "type": "N",
    "wiki": "https://itrtg.wiki.gg/wiki/Class_Experience_Challenge",
    "unlock": [
-    "Unknown (wiki blank)"
+    "Dojo unlocked",
+    "1 Dojo upgrade bought"
    ],
    "requires": [],
    "max": "25",
    "playstyle": null,
    "rewardRating": null,
-   "notes": "Added in 4.65.1705 (2026-09-21). Not in the community guide yet.",
+   "notes": "Added in 4.65.1705 (2026-09-21). Not in the community guide yet. Unlock from the in-game text (\"Have dojo unlocked and upgraded at least one element\"), read as any one Dojo upgrade; the wiki doesn't list it yet.",
    "chp": null,
    "stages": {},
    "check": [
     {
-     "note": "Not documented on the wiki yet"
+     "stat": "dojoAnyMax",
+     "min": 0.001,
+     "label": "Dojo unlocked and one upgrade bought",
+     "haveLabel": "highest Dojo upgrade {v}%"
     }
    ],
    "export": "Class Experience Challenges",
