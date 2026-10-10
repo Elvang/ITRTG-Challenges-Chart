@@ -24,6 +24,8 @@
 //                  {to?, label?, need:[conditions like check]}; the first entry whose "to" covers the next
 //                  completion applies (day challenges: RTI uses the score target, others 1 = first run).
 //                  Used by the Recommended tab to move a row up or down one timing group.
+//                  soft: "reason" on a condition = one part of a total (BS from pet equipment): shown, and
+//                  needed for "Moved up", but missing it never moves a row down.
 //    recLater    : true = the Recommended tab always puts it in Later (community consensus that almost
 //                  anything else is a better use of time; UAC)
 //    scoreCap    : day challenges only - the best score where ChP stops increasing {value, label, short, chp}
@@ -1276,6 +1278,11 @@ window.ITRTG = {
        "min": 200000000
       },
       {
+       "stat": "bsPetEquip",
+       "min": 300,
+       "soft": "Other Building Speed can make up for it"
+      },
+      {
        "score": "RTI",
        "min": 140
       },
@@ -1337,6 +1344,16 @@ window.ITRTG = {
     },
     {
      "note": "Crystal Factory + Crystal Improvement purchase"
+    }
+   ],
+   "statHint": [
+    {
+     "need": [
+      {
+       "stat": "chp:Crystal Upgrade boost",
+       "min": 3
+      }
+     ]
     }
    ],
    "export": "Max Crystal Challenges",
@@ -1625,6 +1642,11 @@ window.ITRTG = {
       {
        "score": "RTI",
        "min": 120
+      },
+      {
+       "stat": "bsPetEquip",
+       "min": 200,
+       "soft": "Other Building Speed can make up for it"
       }
      ]
     }
@@ -1765,6 +1787,11 @@ window.ITRTG = {
       {
        "score": "RTI",
        "min": 147
+      },
+      {
+       "stat": "bsPetEquip",
+       "min": 300,
+       "soft": "Other Building Speed can make up for it"
       }
      ]
     }

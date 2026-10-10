@@ -321,7 +321,7 @@ svg.edges .on path { stroke-width: 3; opacity: 1; }
 .rec-row .hint .have { color: var(--fg-dim); }
 .rec-row .hint.short { color: color-mix(in srgb, var(--warn) 70%, var(--fg)); }
 .rec-row .hint.ready { color: color-mix(in srgb, var(--ok) 70%, var(--fg)); }
-.rec-row .hint.maybe { color: var(--fg-dim); }
+.rec-row .hint.maybe, .rec-row .hint.soft { color: var(--fg-dim); }
 .rec-row .tag.hint-down { background: color-mix(in srgb, var(--warn) 22%, transparent); }
 .rec-row .tag.hint-up, .rec-row .tag.hint-ok { background: color-mix(in srgb, var(--ok) 22%, transparent); }
 .group-bar.rec-h small { margin-left: 4px; }

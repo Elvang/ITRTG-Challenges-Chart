@@ -139,6 +139,9 @@
     ["bsCP", new RegExp("^Building Speed:.*?" + NUM + "\\s*%\\s*from crystal power", "m")],
     ["csGP", new RegExp("^Creating Speed:.*?" + NUM + "\\s*%\\s*from god power", "m")],
     ["bsGP", new RegExp("^Building Speed:.*?" + NUM + "\\s*%\\s*from god power", "m")],
+    // pet equipment multiplier ("* 7.19453 from pet equip"), turned into % below (+619.45%)
+    ["bsPetEquipX", new RegExp("^Building Speed:.*?\\*\\s*" + NUM + "\\s*from pet equip", "m")],
+    ["csPetEquipX", new RegExp("^Creating Speed:.*?\\*\\s*" + NUM + "\\s*from pet equip", "m")],
     ["progress", /^Overall Game Progress:\s*([\d.]+)\s*%/m],
     // The export's tooltip in game: total dungeon levels of the player's top 50 pets (not all pets).
     ["petDungeonTop50", /^Total Pet Dungeon Levels:\s*(.+)$/m],
@@ -177,6 +180,10 @@
     if (perms.length) res.stats.rtiPermMin = Math.min(...perms);
     // Building Speed % from god power + crystal power (OCCC's recommendation)
     if (res.stats.bsGP != null && res.stats.bsCP != null) res.stats.bsGPCP = res.stats.bsGP + res.stats.bsCP;
+    // Building / Creating Speed % from pet equipment, as the newer exports also list it ("Pet equip building speed
+    // bonus: 619.45%"). Read from the multiplier so older exports have it too.
+    if (res.stats.bsPetEquipX != null) res.stats.bsPetEquip = (res.stats.bsPetEquipX - 1) * 100;
+    if (res.stats.csPetEquipX != null) res.stats.csPetEquip = (res.stats.csPetEquipX - 1) * 100;
     // ChP purchases ("Chp Crystal Sacrifice boost: 50%", "Chp Quest Overtime: True") and Overflow Points upgrades
     // ("OfP Might Speed: 0%"), as "chp:<name>" / "ofp:<name>". True/False read as 1/0. Exports from before
     // 2026-10 don't have these lines, and some purchases (Crystal Sacrifice itself, Early SpaceDim) aren't listed.

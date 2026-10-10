@@ -368,7 +368,8 @@
   // Picks the hint for the next completion and returns { hint, rows: [{k, ok, have}], verdict: "ready" | "short" | null }.
   const HINT_LABEL = { maxClones: "clones", lightClones: "light clones", cc: "Creation Count", csTotal: "% CS", bsTotal: "% BS",
     bsGP: "% BS from GP", csGP: "% CS from GP", bsGPCP: "% BS from GP + CP", petGrowth: "pet growth", pets: "pets",
-    totalMight: "Total Might", gpBank: "banked GP" };
+    totalMight: "Total Might", gpBank: "banked GP", bsPetEquip: "% BS from pet equipment", csPetEquip: "% CS from pet equipment",
+    "chp:Crystal Upgrade boost": "% Crystal Upgrade chance from ChP" };
   function hintFor(c, st, nx) {
     let t;
     if (c.type === "D") { const v = nx && typeof nx.target === "string" && nx.target.match(/v(\d+)/); t = v ? +v[1] : st.v > 0 ? 2 : 1; }
@@ -381,7 +382,8 @@
     const hint = hintFor(c, st, nx);
     if (!hint.need.length) return null;
     const rows = hint.need.map(hintRow);
-    const verdict = rows.some(r => r.ok === false) ? "short" : rows.every(r => r.ok === true) ? "ready" : null;
+    // "soft" conditions (one part of a total, e.g. BS from pet equipment) never make it "short" on their own
+    const verdict = rows.some(r => r.ok === false && !r.k.soft) ? "short" : rows.every(r => r.ok === true) ? "ready" : null;
     return { hint, rows, verdict };
   }
   // r = {k, have}; without an import (bare) only the recommendation is shown
@@ -413,7 +415,7 @@
         if (!imp) return `<li><span class="m q">•</span><span>${hintText({ k }, true)}</span></li>`;
         const r = hintRow(k);
         const m = r.ok === true ? '<span class="m y">✓</span>' : r.ok === false ? '<span class="m n">✗</span>' : '<span class="m q">?</span>';
-        return `<li>${m}<span>${hintText(r)}</span></li>`;
+        return `<li>${m}<span>${hintText(r)}${k.soft ? ` <small class="muted">· ${esc(k.soft)}</small>` : ""}</span></li>`;
       }).join("");
       return `<p class="muted hint-when${h === now ? " now" : ""}">For ${esc(when)}${h === now ? " · applies to your next one" : ""}</p><ul class="checks">${rows}</ul>`;
     }).join("");
@@ -507,16 +509,18 @@
       else if (typeof nx.target === "string") prog += ` · aim for <b>${esc(nx.target)}</b>`;
       const rsum = window.ITRTGRewards.rewardSummary(c.code, BY);
       let hl = "", htag = "";
+      const forTxt = it.hc && it.hc.hint.label ? ` for ${esc(it.hc.hint.label)}` : "";
       if (it.hc && it.hc.verdict) {
-        const forTxt = it.hc.hint.label ? ` for ${esc(it.hc.hint.label)}` : "";
         if (it.hc.verdict === "short") {
-          hl = `<div class="hint short">Wiki recommends${forTxt}: ${it.hc.rows.filter(r => r.ok === false).map(hintText).join(" · ")}</div>`;
+          hl = `<div class="hint short">Wiki recommends${forTxt}: ${it.hc.rows.filter(r => r.ok === false && !r.k.soft).map(hintText).join(" · ")}</div>`;
           if (it.moved) htag = `<span class="tag hint-down">Moved down: below the wiki's stats</span>`;
         } else {
           if (it.moved) { htag = `<span class="tag hint-up">Moved up: your stats look ready</span>`; hl = `<div class="hint ready">Meets the wiki's recommendation${forTxt}: ${it.hc.rows.map(hintText).join(" · ")}</div>`; }
           else htag = `<span class="tag hint-ok" title="Meets the wiki's recommended stats${forTxt}">✓ Wiki stats</span>`;
         }
       }
+      const softMiss = it.hc ? it.hc.rows.filter(r => r.ok === false && r.k.soft) : [];
+      if (softMiss.length) hl += `<div class="hint soft">Wiki also suggests${forTxt}: ${softMiss.map(hintText).join(" · ")}. ${esc(softMiss[0].k.soft)}, so this doesn't move the row.</div>`;
       if (st.s === "maybe") {
         const unk = (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText);
         hl = `<div class="hint maybe">? The export can't confirm this is unlocked${unk.length ? `. Check in game: ${esc(unk.join("; "))}` : ""}</div>` + hl;
