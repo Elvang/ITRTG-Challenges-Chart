@@ -104,7 +104,7 @@
       const w = word[0];
       if (w.toLowerCase() in WORDS) return scale(WORDS[w.toLowerCase()]);
       if (w in ROMAN) return scale(ROMAN[w]);
-      if (/^(hours?|days?|minutes?|seconds?|times?|levels?)$/i.test(w)) return v;   // units after a plain number
+      if (/^(hours?|days?|minutes?|mins?|seconds?|times?|levels?)$/i.test(w)) return v;   // units after a plain number
     }
     return null;
   }
@@ -140,6 +140,8 @@
     ["csGP", new RegExp("^Creating Speed:.*?" + NUM + "\\s*%\\s*from god power", "m")],
     ["bsGP", new RegExp("^Building Speed:.*?" + NUM + "\\s*%\\s*from god power", "m")],
     ["progress", /^Overall Game Progress:\s*([\d.]+)\s*%/m],
+    // The export's tooltip in game: total dungeon levels of the player's top 50 pets (not all pets).
+    ["petDungeonTop50", /^Total Pet Dungeon Levels:\s*(.+)$/m],
   ];
 
   const CH_LINE = new RegExp("^(.+?):\\s*" + NUM + "\\s*/\\s*" + NUM + "\\s*$");
@@ -175,6 +177,20 @@
     if (perms.length) res.stats.rtiPermMin = Math.min(...perms);
     // Building Speed % from god power + crystal power (OCCC's recommendation)
     if (res.stats.bsGP != null && res.stats.bsCP != null) res.stats.bsGPCP = res.stats.bsGP + res.stats.bsCP;
+    // ChP purchases ("Chp Crystal Sacrifice boost: 50%", "Chp Quest Overtime: True") and Overflow Points upgrades
+    // ("OfP Might Speed: 0%"), as "chp:<name>" / "ofp:<name>". True/False read as 1/0. Exports from before
+    // 2026-10 don't have these lines, and some purchases (Crystal Sacrifice itself, Early SpaceDim) aren't listed.
+    for (const m of text.matchAll(/^(Chp|OfP) (.+?):\s*(.+)$/gm)) {
+      const raw = m[3].trim(), v = /^true$/i.test(raw) ? 1 : /^false$/i.test(raw) ? 0 : parseNumber(raw);
+      if (v != null && !isNaN(v)) res.stats[m[1].toLowerCase() + ":" + m[2].trim()] = v;
+    }
+    // NRDC unlock: top 36 pets' dungeon levels > 450. The export gives the top 50's total. The best 36 of those
+    // average at least as much as all 50, so total × 36 / 50 is a floor for the top 36 (a low one when a few pets
+    // hold most of the levels, but never too high). With 36 pets or fewer the total is the top 36 exactly.
+    if (res.stats.petDungeonTop50 != null) {
+      const n = Math.min(res.stats.pets != null ? res.stats.pets : 50, 50);
+      res.stats.petDungeonTop36Floor = n <= 36 ? res.stats.petDungeonTop50 : Math.floor(res.stats.petDungeonTop50 * 36 / n);
+    }
 
     res.format = detectFormat(text);
 

@@ -16,7 +16,10 @@
 //                   {stat:"planetLevel", min:5}  worked out by stats-parser.js (UUC, DBC, ChP levels)
 //                   {score:"RTI", min:140}   a day-challenge best score
 //                   {note:"text"}            can't be checked from the export
-//                   {any:[...]}              any one of these
+//                   {any:[...]}              any one of these. With a {note} in it, the check can confirm
+//                                            but never fail (NRCPC: a boost above 0% proves the purchase)
+//                   label: "text"            optional, replaces the generated text for a condition
+//                   haveLabel: "... {v} ..." optional, replaces "have <value>" next to it
 //    statHint    : the wiki's "Recommended stats", only the parts the export can check. A list of
 //                  {to?, label?, need:[conditions like check]}; the first entry whose "to" covers the next
 //                  completion applies (day challenges: RTI uses the score target, others 1 = first run).
@@ -2785,7 +2788,23 @@ window.ITRTG = {
      "n": 1
     },
     {
-     "note": "Top 36 pet dungeon levels > 450"
+     "stat": "petDungeonTop50",
+     "min": 451,
+     "label": "Top 50 pets' dungeon levels > 450",
+     "haveLabel": "your top 50 have {v}"
+    },
+    {
+     "label": "Top 36 pet dungeon levels > 450",
+     "any": [
+      {
+       "stat": "petDungeonTop36Floor",
+       "min": 451,
+       "haveLabel": "your top 36 have at least {v}"
+      },
+      {
+       "note": "Top 36 pet dungeon levels > 450"
+      }
+     ]
     }
    ],
    "export": "No Rebirth Dungeon Challenges",
@@ -2831,7 +2850,17 @@ window.ITRTG = {
      "min": 100000
     },
     {
-     "note": "Crystal Sacrifice ChP purchase"
+     "label": "Crystal Sacrifice ChP purchase",
+     "any": [
+      {
+       "stat": "chp:Crystal Sacrifice boost",
+       "min": 0.001,
+       "haveLabel": "Crystal Sacrifice boost {v}%, so it's bought"
+      },
+      {
+       "note": "Crystal Sacrifice ChP purchase"
+      }
+     ]
     }
    ],
    "statHint": [

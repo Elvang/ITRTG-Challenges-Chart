@@ -943,6 +943,7 @@
     return v <= 0 ? 0 : v < 3000 ? 1 : v < 10000 ? 2 : v < 25000 ? 3 : v < 35000 ? 4 : 5;
   }
   function condText(k) {
+    if (k.label) return k.label;
     if (k.ch) return `${k.n} ${k.ch}`;
     if (k.score) return `${BY[k.score].code} score ≥ ${fmt(k.min)}`;
     if (k.stat) {
@@ -963,8 +964,11 @@
     if (k.ch) return imp.done[k.ch] != null ? `have ${imp.done[k.ch]}` : "";
     if (k.score) return imp.scores[k.score] != null ? `best ${fmt(imp.scores[k.score])}` : "not played";
     if (k.stat === "planetLevel") return imp.stats.planetLevel == null ? "known once you've done a UUC or DBC" : `yours is ${imp.stats.planetLevelExact ? "" : "at least "}${fmt(imp.stats.planetLevel)}`;
-    if (k.stat) { const v = imp.stats[k.stat]; if (v == null) return ""; if (k.stat === "v4Hours") return `best ${v.toFixed(2)}h`; return k.stat === "v4Defeated" ? "" : `have ${fmt(v)}`; }
-    if (k.any) return k.any.map(haveText).filter(Boolean).join(", ");
+    if (k.stat) { const v = imp.stats[k.stat]; if (v == null) return ""; if (k.haveLabel) return k.haveLabel.replace("{v}", fmt(v)); if (k.stat === "v4Hours") return `best ${v.toFixed(2)}h`; return k.stat === "v4Defeated" ? "" : `have ${fmt(v)}`; }
+    if (k.any) {   // when one option is met, say only that one
+      const hit = k.any.find(x => P.evalCond(x, imp) === true);
+      return hit ? haveText(hit) : k.any.map(haveText).filter(Boolean).join(", ");
+    }
     return "can't tell from the export";
   }
   function openInfo(code) {
