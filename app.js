@@ -36,6 +36,25 @@
   };
   // two numbers that get compared side by side use the same notation
   const fmtPair = (a, b) => { const s = Math.max(Math.abs(a || 0), Math.abs(b || 0)) >= 1e6; return [fmt(a, s), fmt(b, s)]; };
+  // Time left until a {stat, min} condition is met at the player's rate (stats-parser.js etaFor).
+  // Short: "about 6 months away". Long adds the basis: "about 6 months at your rate over the last 353 days".
+  const durText = h => {
+    const d = h / 24;
+    if (h < 48) return `about ${Math.max(1, Math.round(h))} hour${Math.round(h) === 1 ? "" : "s"}`;
+    if (d < 60) return `about ${Math.round(d)} days`;
+    if (d < 730) return `about ${Math.round(d / 30.4)} months`;
+    if (d < 3650) return `about ${(d / 365).toFixed(1)} years`;
+    return "over 10 years";
+  };
+  function etaText(k, long) {
+    const e = P.etaFor(k, imp);
+    if (!e) return "";
+    if (e.hours === Infinity) return "not growing at your rate";
+    if (!long) return durText(e.hours) + " away";
+    const basis = e.basis === "recent" ? `your rate over the last ${e.windowHours < 48 ? Math.round(e.windowHours) + " hours" : Math.round(e.windowHours / 24) + " days"}`
+      : "your average since the game started tracking it";
+    return `${durText(e.hours)} at ${basis}`;
+  }
 
   // Page version, read from app.js's own ?v= in index.html (the one place it's set). Shown bottom-left.
   const PAGE_VERSION = (() => { try { return new URL(document.currentScript.src).searchParams.get("v") || "dev"; } catch (e) { return "dev"; } })();
@@ -387,8 +406,8 @@
     return { hint, rows, verdict };
   }
   // r = {k, have}; without an import (bare) only the recommendation is shown
-  function hintText(r, bare) {
-    const k = r.k, hv = t => bare ? "" : ` <span class="have">(${t})</span>`;
+  function hintText(r, bare, long) {
+    const k = r.k, eta = bare ? "" : etaText(k, long), hv = t => bare ? "" : ` <span class="have">(${t}${eta ? " · " + esc(eta) : ""})</span>`;
     if (k.ch) return `${k.n} ${k.ch}` + hv(`you have ${r.have ?? "–"}`);
     if (k.score) return `${k.score} v${k.min}` + hv(`your best ${r.have != null ? "v" + fmt(r.have) : "–"}`);
     if (k.stat === "pbaal") return `P.Baal v${k.min}` + hv(`you have v${fmt(r.have)}`);
@@ -415,7 +434,7 @@
         if (!imp) return `<li><span class="m q">•</span><span>${hintText({ k }, true)}</span></li>`;
         const r = hintRow(k);
         const m = r.ok === true ? '<span class="m y">✓</span>' : r.ok === false ? '<span class="m n">✗</span>' : '<span class="m q">?</span>';
-        return `<li>${m}<span>${hintText(r)}${k.soft ? ` <small class="muted">· ${esc(k.soft)}</small>` : ""}</span></li>`;
+        return `<li>${m}<span>${hintText(r, false, true)}${k.soft ? ` <small class="muted">· ${esc(k.soft)}</small>` : ""}</span></li>`;
       }).join("");
       return `<p class="muted hint-when${h === now ? " now" : ""}">For ${esc(when)}${h === now ? " · applies to your next one" : ""}</p><ul class="checks">${rows}</ul>`;
     }).join("");
@@ -512,15 +531,15 @@
       const forTxt = it.hc && it.hc.hint.label ? ` for ${esc(it.hc.hint.label)}` : "";
       if (it.hc && it.hc.verdict) {
         if (it.hc.verdict === "short") {
-          hl = `<div class="hint short">Wiki recommends${forTxt}: ${it.hc.rows.filter(r => r.ok === false && !r.k.soft).map(hintText).join(" · ")}</div>`;
+          hl = `<div class="hint short">Wiki recommends${forTxt}: ${it.hc.rows.filter(r => r.ok === false && !r.k.soft).map(r => hintText(r)).join(" · ")}</div>`;
           if (it.moved) htag = `<span class="tag hint-down">Moved down: below the wiki's stats</span>`;
         } else {
-          if (it.moved) { htag = `<span class="tag hint-up">Moved up: your stats look ready</span>`; hl = `<div class="hint ready">Meets the wiki's recommendation${forTxt}: ${it.hc.rows.map(hintText).join(" · ")}</div>`; }
+          if (it.moved) { htag = `<span class="tag hint-up">Moved up: your stats look ready</span>`; hl = `<div class="hint ready">Meets the wiki's recommendation${forTxt}: ${it.hc.rows.map(r => hintText(r)).join(" · ")}</div>`; }
           else htag = `<span class="tag hint-ok" title="Meets the wiki's recommended stats${forTxt}">✓ Wiki stats</span>`;
         }
       }
       const softMiss = it.hc ? it.hc.rows.filter(r => r.ok === false && r.k.soft) : [];
-      if (softMiss.length) hl += `<div class="hint soft">Wiki also suggests${forTxt}: ${softMiss.map(hintText).join(" · ")}. ${esc(softMiss[0].k.soft)}, so this doesn't move the row.</div>`;
+      if (softMiss.length) hl += `<div class="hint soft">Wiki also suggests${forTxt}: ${softMiss.map(r => hintText(r)).join(" · ")}. ${esc(softMiss[0].k.soft)}, so this doesn't move the row.</div>`;
       if (st.s === "maybe") {
         const unk = (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText);
         hl = `<div class="hint maybe">? The export can't confirm this is unlocked${unk.length ? `. Check in game: ${esc(unk.join("; "))}` : ""}</div>` + hl;
@@ -1002,7 +1021,7 @@
       const checks = (c.check || []).map(k => {
         const r = P.evalCond(k, imp);
         const m = r === true ? '<span class="m y">✓</span>' : r === false ? '<span class="m n">✗</span>' : '<span class="m q">?</span>';
-        const h = haveText(k);
+        const h = [haveText(k), etaText(k, true)].filter(Boolean).join(" · ");
         return `<li>${m}<span>${esc(condText(k))}${h ? ` <small>(${esc(h)})</small>` : ""}</span></li>`;
       }).join("");
       parts.push(`<section><h3>Your progress · ${esc(imp.player || "imported")}</h3>${prog}${checks ? `<h3 style="margin-top:12px">Unlock check</h3><ul class="checks">${checks}</ul>` : ""}</section>`);
@@ -1218,7 +1237,7 @@
       const s = P.statusOf(c, imp);
       const el = boxes[c.code], chip = el.querySelector(".st");
       const ct = chipText(s);
-      if (ct) { chip.hidden = false; chip.textContent = ct[0]; chip.className = "st " + ct[1]; chip.title = s.s === "maybe" ? "Everything the export shows is met. Still check: " + (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText).join("; ") : s.s === "locked" ? "Not met: " + (c.check || []).filter(k => P.evalCond(k, imp) === false).map(condText).join("; ") : s.s === "ready" ? "Unlocked, not started yet. The Recommended tab shows whether the guide suggests it at your ChP." : ""; }
+      if (ct) { chip.hidden = false; chip.textContent = ct[0]; chip.className = "st " + ct[1]; chip.title = s.s === "maybe" ? "Everything the export shows is met. Still check: " + (c.check || []).filter(k => P.evalCond(k, imp) === null).map(condText).join("; ") : s.s === "locked" ? "Not met: " + (c.check || []).filter(k => P.evalCond(k, imp) === false).map(k => { const e = etaText(k); return condText(k) + (e ? ` (${e})` : ""); }).join("; ") : s.s === "ready" ? "Unlocked, not started yet. The Recommended tab shows whether the guide suggests it at your ChP." : ""; }
       else chip.hidden = true;
       el.classList.toggle("is-done", s.s === "done");
       el.classList.toggle("is-locked", s.s === "locked");

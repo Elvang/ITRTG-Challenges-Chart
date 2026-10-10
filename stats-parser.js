@@ -154,7 +154,7 @@
   }
 
   function parseExport(text, challenges) {
-    const res = { player: null, platform: null, stats: {}, done: {}, cap: {}, scores: {}, unknown: [], found: 0 };
+    const res = { player: null, platform: null, stats: {}, rates: {}, done: {}, cap: {}, scores: {}, unknown: [], found: 0 };
     if (!text || !/statistics export/i.test(text)) {
       res.error = "This doesn't look like an ITRTG statistics export. It should start with \"Idling to Rule the Gods - statistics export\".";
     }
@@ -197,6 +197,19 @@
     if (res.stats.petDungeonTop50 != null) {
       const n = Math.min(res.stats.pets != null ? res.stats.pets : 50, 50);
       res.stats.petDungeonTop36Floor = n <= 36 ? res.stats.petDungeonTop50 : Math.floor(res.stats.petDungeonTop50 * 36 / n);
+    }
+
+    // Per-hour rates, real time (offline included). Each stat has a "since beginning" line (since the game started
+    // tracking it) and a "since <time>" line the player can reset in game, so that window can be any length.
+    // Light Clones has only the second kind. res.rates[stat] = { all?, recent?, recentHours? }.
+    const RATE_KEY = { "Pet Growth": "petGrowth", "Might": "totalMight", "Crystal Power": "cp", "Light Clones": "lightClones", "God Power": "gp" };
+    for (const m of text.matchAll(new RegExp("^(.+?) / hour since (beginning|.+? hours?):\\s*" + NUM, "gm"))) {
+      const key = RATE_KEY[m[1].trim()], rate = parseNumber(m[3]);
+      if (!key || rate == null || isNaN(rate)) continue;
+      const r = res.rates[key] = res.rates[key] || {};
+      if (m[2] === "beginning") { r.all = rate; continue; }
+      const w = m[2].match(/^(?:([\d,]+)\s*days?,\s*)?(\d+):(\d+):(\d+)/);
+      if (w) { r.recent = rate; r.recentHours = parseNumber(w[1] || "0") * 24 + +w[2] + w[3] / 60 + w[4] / 3600; }
     }
 
     res.format = detectFormat(text);
@@ -275,7 +288,27 @@
     return null;
   }
 
-  const api = { parseNumber, detectFormat, parseExport, evalCond, statusOf, unlockState, STAT_PARSERS };
+  // Time until a {stat, min} condition is met at the player's rate. The resettable window is used when it covers at
+  // least a day (shorter is too noisy), otherwise the since-beginning rate. Returns null when there's nothing to
+  // estimate (met, no rate, not a minimum), or { hours (Infinity when not growing), rate, basis, windowHours }.
+  const MIN_RATE_WINDOW_H = 24;
+  function rateFor(stat, imp) {
+    const r = imp && imp.rates && imp.rates[stat];
+    if (!r) return null;
+    if (r.recent != null && r.recentHours >= MIN_RATE_WINDOW_H) return { rate: r.recent, basis: "recent", windowHours: r.recentHours };
+    if (r.all != null) return { rate: r.all, basis: "all" };
+    return null;
+  }
+  function etaFor(k, imp) {
+    if (!imp || !k || !k.stat || k.min == null || k.max != null) return null;
+    const v = imp.stats[k.stat];
+    if (v == null || v >= k.min) return null;
+    const r = rateFor(k.stat, imp);
+    if (!r) return null;
+    return Object.assign({ hours: r.rate > 0 ? (k.min - v) / r.rate : Infinity }, r);
+  }
+
+  const api = { parseNumber, detectFormat, parseExport, evalCond, statusOf, unlockState, rateFor, etaFor, STAT_PARSERS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ITRTGParser = api;
 })(typeof window !== "undefined" ? window : globalThis);
